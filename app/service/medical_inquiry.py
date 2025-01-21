@@ -1,6 +1,7 @@
 from abc import ABC
 from operator import itemgetter
 from typing import List
+import datetime
 
 from ray import serve
 
@@ -19,6 +20,8 @@ from langchain_community.retrievers import BM25Retriever
 
 from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM
+from app.util.time_func import format_datetime_with_ampm
+
 
 @serve.deployment(
     placement_group_bundles=[{
@@ -32,6 +35,67 @@ from app.core.langchain_module.llm import DDG_LLM
     placement_group_strategy="STRICT_PACK",
     max_ongoing_requests=10)
 class MedicalInquiryService:
+    dental_section_list = [
+        "혀", "입천장", 
+        "좌측 턱", "우측 턱", 
+        "상악 좌측치", "하악 좌측치", 
+        "상악 전치부", "하악 전치부", 
+        "상악 우측치", "하악 우측치"]
+    system_prompt: str =f"""
+# Service Informations
+현재 시각: {format_datetime_with_ampm(datetime.datetime.now())}
+
+# Task
+사용자의 Utterance에서 항목들을 정리해야합니다.
+1차적으로 Screening 된 정보와 이전까지 기록된 항목들을 바탕으로 질문과 증상을 정리하세요.
+최종적으로 정리된 표와 주어지는 Context를 보고 질문에 대해 적합한 치료 방법과 치료 시간을 제시하세요.
+
+## Screening 
+- 증상 : (발화 중 드러난 증상 작성. 의학적 용어로 작성.)
+- 지속 기간 : (발화한 기간을 작성. 시간의 형태로 작성.) 
+- 증상 부위 : (증상의 위치가 구체적으로 특정된 경우에 {', '.join(dental_section_list)} 중에서 다중 선택)
+- 증상 강도 : (0:통증/불편 없음 1-2:가벼운 통증/불편 3-4:보통 수준의 통증/불편 5-6:심한 통증/불편 7-8:매우 심한 통증/불편 9-10:극심한 통증/불편)
+- 증상 유발요인 : (발화한 유발 요인, 상황 작성. 보편적으로 증상이 발생할 수 있는 경우를 유추하여 작성.)
+- 하고 싶은 말 : (따로 없는 경우는 작성하지 않음) 
+
+# Tone And Manner
+- 친절하고 이해하기 쉽게 질문하고 답변해야합니다.
+- 항목별로 구체적인 항목을 말할 수 있게 질문해야합니다.
+- 친근한 어조의 발화 형식으로 질문하고 답변해야합니다.
+- 아주 짧은 문장으로 응답해야만 합니다.
+
+# Workflow
+Task를 수행하기 위한 3 단계에 대한 가이드라인입니다.
+
+## Step1. Screening
+- Screening 정보는 추가적으로 작성되어 사용자에게 지속적으로 전달합니다.
+- Screening 정보는 시스템적으로 처리 가능한 수치, 문자의 형태로 고정합니다.
+- 이전 채팅에서 Screening 된 history는 반드시 유지되어야 합니다.
+- Screening에 작성 되지 않는 항목이 있는 경우에만 추가적으로 해당하는 항목에 대한 질문을 수행합니다.(하고싶은 말 제외)
+    - 질문을 할 때는 증상, 지속 기간, 증상 부위, 증상 강도, 증상 유발요인 중 비어있는 항목 1개에 대해서만 1회 생성합니다.
+    - 질문을 할 때는, 항목에 대한 명시를 하지 않고 질문만 생성합니다.
+    - 질문 항목에 대해 사용자가 뚜렷하게 모를 수 있으므로, 모른다는 응답에도 해당 항목은 작성되어야합니다.
+- 만약 Screening 표가 모두 작성된 경우(하고 싶은 말 제외), Step1는 즉시 종료합니다.
+
+## Step2. Chat with Context
+- Step1이후 Context에 기반한 예상 치료 정보를 제공합니다.
+- Screening에서 모든 항목이 채워진 경우에 예상 치료 정보를 제공합니다.
+- Context가 없는 경우, 치료 방법과 치료 시간은 제시하지 말아야합니다.
+- Context의 예시를 참고하여 예상되는 치료 방법과 시간을 제시합니다.
+- 제공받은 Case들에 대해서 복합 치료가 필요한 경우 두 가지 방법 모두 제시하세요.
+- 1회 공지 이후 Step2는 종료됩니다.
+
+## Step3. Reservations and Scheduling
+- Step2 이후에는 예약 및 스케줄링에 대한 정보를 제공합니다.
+- 사용자에게 방문 시간에 대해 질문하고 해당 시간과 날짜를 판단하여 제공합니다.
+- 현재 시각 기준으로 예약 날짜를 판단하며 정확한 날짜의 형식으로 제공합니다. (ex. 2024년 11월 21일 목요일 오전 9시 30분 등...)
+
+# Output
+- (필수)Screening 표
+- (Step1 진행 중)Screening 항목에 대한 질문 질문
+- (Step2 진행 중)예상 치료 방법
+- (Step3 진행 중)사용자가 원하는 방문 시간
+""".strip()
 
     def __init__(
         self,
@@ -39,7 +103,19 @@ class MedicalInquiryService:
         **kwargs
     ):
         self.llm = kwargs.get("llm", DDG_LLM())
-    
+        self.vectorstore = VectorStore()
+
+    async def inquiry_chat(
+        self,
+        text:str,
+        memory_key: str = "history"
+    ):
+        rag_chain = self.get_rag_chain(
+            vectorstore=self.vectorstore,
+            system_prompt=self.system_prompt,
+            memory=ConversationBufferMemory(memory_key=memory_key)
+        )
+        return await rag_chain.ainvoke({"input": {"question": text}})
 
     # Adaptive RAG components
     def generate_queries(self, question: str) -> List[str]:
@@ -50,7 +126,6 @@ class MedicalInquiryService:
             ])
         chain = prompt | self.llm | LineListOutputParser()
         return chain.invoke({"question": question})
-
 
     def get_adaptive_retriever(self, vectorstore: VectorStore, compressor: CrossEncoderReranker):
         # Base vector retriever

@@ -75,9 +75,8 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 st = time.time()
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
-                result += await self.batched_summary(
+                result += await self.inquiry_chat(
                     self=self._get_class(),
-                    request_prompt=request.prompt,
                     request_text=request.text)
                 # result = text_postprocess(result)
                 # print(result)
@@ -109,8 +108,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # assert len(request.text ) > 200, "Text is too short"
                 return StreamingResponse(
                     content=self.service_as_stream.summarize.remote(
-                        input_prompt=request.prompt,
-                        input_text=request.text, 
+                        text=request.text, 
                         stream=True),
                     media_type="text/event-stream")
                 end = time.time()
