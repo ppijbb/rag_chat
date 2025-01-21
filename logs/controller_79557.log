@@ -1,0 +1,34 @@
+INFO 2025-01-21 14:35:05,163 controller 79557 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:35:05,169 controller 79557 -- Starting proxy on node 'ea34d09791a3c46e9dc509cb76951c648ad476e1251861066969d9c1' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:35:05,715 controller 79557 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:35:05,717 controller 79557 -- Deploying new version of Deployment(name='mvp_test_server', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:35:05,820 controller 79557 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:35:05,821 controller 79557 -- Starting Replica(id='30b52div', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:35:05,822 controller 79557 -- Adding 1 replica to Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:35:05,822 controller 79557 -- Starting Replica(id='0ri3xfrn', deployment='mvp_test_server', app='default').
+WARNING 2025-01-21 14:35:35,834 controller 79557 -- Deployment 'MedicalInquiryService' in application 'default' has 1 replicas that have taken more than 30s to be scheduled.
+This may be due to waiting for the cluster to auto-scale or for a runtime environment to be installed.
+Resources required for each replica:
+{"CPU": 1}
+Total resources available:
+{}
+Use `ray status` for more details.
+WARNING 2025-01-21 14:35:35,835 controller 79557 -- Deployment 'mvp_test_server' in application 'default' has 1 replicas that have taken more than 30s to be scheduled.
+This may be due to waiting for the cluster to auto-scale or for a runtime environment to be installed.
+Resources required for each replica:
+[{"CPU": 1.0}]
+Total resources available:
+{}
+Use `ray status` for more details.
+INFO 2025-01-21 14:35:43,391 controller 79557 -- Controller shutdown started.
+INFO 2025-01-21 14:35:43,392 controller 79557 -- Deleting app 'default'.
+INFO 2025-01-21 14:35:43,394 controller 79557 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:35:43,395 controller 79557 -- Deleting Deployment(name='mvp_test_server', app='default')
+INFO 2025-01-21 14:35:43,399 controller 79557 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:35:43,399 controller 79557 -- Removing 1 replica from Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:35:43,399 controller 79557 -- Stopping Replica(id='30b52div', deployment='MedicalInquiryService', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:35:43,401 controller 79557 -- Stopping Replica(id='0ri3xfrn', deployment='mvp_test_server', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:35:45,024 controller 79557 -- Replica(id='30b52div', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 14:35:45,026 controller 79557 -- Replica(id='0ri3xfrn', deployment='mvp_test_server', app='default') is stopped.
+INFO 2025-01-21 14:35:45,028 controller 79557 -- Removing proxy on removed node 'ea34d09791a3c46e9dc509cb76951c648ad476e1251861066969d9c1'.
+WARNING 2025-01-21 14:35:45,135 controller 79557 -- All resources have shut down, controller exiting.

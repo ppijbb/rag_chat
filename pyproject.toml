@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = ["Conan <ppijbb@naver.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+ray = {extras = ["serve"], version = "^2.40.0"}
+fastapi = "^0.115.6"
+pydantic = "^2.10.5"
+openai = "^1.59.9"
+langchain = {extras = ["all"], version = "^0.3.14"}
+langchain-community = { version = "^0.3.14" }
+langchain-core = { version = "^0.3.31" }
+langchain-openai = { version = "^0.3.1" }
+langchain-huggingface = { version = "^0.1.2" }
+langchain-qdrant = { version = "^0.2.0" }
+langchain-neo4j = { version = "^0.3.0" }
+qdrant-client = { version = "^1.13.0" }
+rank-bm25 = { version = "^0.2.2" }
+neo4j = { version = "^5.27.0" }
+duckduckgo-search = { version = "^7.2.1" }
+pyvis = { version = "^0.3.2" }
+torch = { version = "^2.5.1", source = "torch-cu121" }
+torchvision = { version = "^0.20.1", source = "torch-cu121" }
+torchaudio = { version = "^2.5.1", source = "torch-cu121" }
+
+
+[[tool.poetry.source]]
+name = "torch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 

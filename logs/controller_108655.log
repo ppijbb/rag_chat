@@ -1,0 +1,2 @@
+INFO 2025-01-21 15:21:14,037 controller 108655 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 15:21:14,042 controller 108655 -- Starting proxy on node 'f1383ce50e2b84ede7e530184ac3bd817616ed8c1b1a28e961c6a71b' listening on '0.0.0.0:8504'.

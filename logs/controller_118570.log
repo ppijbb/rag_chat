@@ -1,0 +1,27 @@
+INFO 2025-01-21 15:37:09,676 controller 118570 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 15:37:09,680 controller 118570 -- Starting proxy on node '038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f' listening on '0.0.0.0:8504'.
+WARNING 2025-01-21 15:37:14,818 controller 118570 -- Proxy actor readiness check for proxy on 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f didn't complete in 5.0s.
+WARNING 2025-01-21 15:37:14,818 controller 118570 -- Proxy actor reported not ready on node 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+WARNING 2025-01-21 15:37:19,937 controller 118570 -- Proxy actor readiness check for proxy on 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f didn't complete in 5.0s.
+WARNING 2025-01-21 15:37:19,937 controller 118570 -- Proxy actor reported not ready on node 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+WARNING 2025-01-21 15:37:25,064 controller 118570 -- Proxy actor readiness check for proxy on 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f didn't complete in 5.0s.
+WARNING 2025-01-21 15:37:25,064 controller 118570 -- Proxy SERVE_PROXY_ACTOR-038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f failed the health check 3 times in a row, marking it unhealthy.
+WARNING 2025-01-21 15:37:25,064 controller 118570 -- Proxy actor reported not ready on node 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+INFO 2025-01-21 15:37:25,065 controller 118570 -- Proxy on node '038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f' is unhealthy. Shutting down the unhealthy proxy and starting a new one.
+INFO 2025-01-21 15:37:25,066 controller 118570 -- Starting proxy on node '038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f' listening on '0.0.0.0:8504'.
+ERROR 2025-01-21 15:37:25,787 controller 118570 -- Unexpected error invoking readiness check for proxy on 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/proxy_state.py", line 204, in is_ready
+    worker_id, log_file_path = json.loads(self._ready_check_future.result())
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ray.exceptions.ActorDiedError: The actor died unexpectedly before finishing this task.
+	class_name: ProxyActor
+	actor_id: c3338767d0eb5c553f7bd98901000000
+	pid: 118565
+	name: SERVE_PROXY_ACTOR-038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+	namespace: serve
+	ip: 172.26.105.92
+The actor died because its node has died. Node Id: 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+	the actor's node was terminated expectedly: received SIGTERM
+WARNING 2025-01-21 15:37:25,797 controller 118570 -- Proxy actor reported not ready on node 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f
+INFO 2025-01-21 15:37:25,797 controller 118570 -- Removing proxy on removed node '038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f'.

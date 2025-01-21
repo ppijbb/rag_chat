@@ -1,0 +1,1 @@
+from .medical_inquiry import MedicalInquiryRouterIngress as MedicalInquiryRouterIngress

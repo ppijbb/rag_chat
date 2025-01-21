@@ -1,0 +1,21 @@
+INFO 2025-01-21 14:29:39,120 controller 74901 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:29:39,126 controller 74901 -- Starting proxy on node '2f9d9b7cf74ec5491eba89a9d0a8d500ef692f6b8a5e10fac533b332' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:29:39,679 controller 74901 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:29:39,680 controller 74901 -- Deploying new version of Deployment(name='mvp_test_server', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:29:39,783 controller 74901 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:29:39,784 controller 74901 -- Starting Replica(id='xr7m2oli', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:29:39,784 controller 74901 -- Adding 1 replica to Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:29:39,785 controller 74901 -- Starting Replica(id='41btoj4g', deployment='mvp_test_server', app='default').
+INFO 2025-01-21 14:29:42,924 controller 74901 -- Replica(id='xr7m2oli', deployment='MedicalInquiryService', app='default') started successfully on node '2f9d9b7cf74ec5491eba89a9d0a8d500ef692f6b8a5e10fac533b332' after 3.1s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 14:29:43,129 controller 74901 -- Replica(id='41btoj4g', deployment='mvp_test_server', app='default') started successfully on node '2f9d9b7cf74ec5491eba89a9d0a8d500ef692f6b8a5e10fac533b332' after 3.3s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:31:25,558 controller 74901 -- Controller shutdown started.
+INFO 2025-01-21 14:31:25,560 controller 74901 -- Deleting app 'default'.
+INFO 2025-01-21 14:31:25,561 controller 74901 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:31:25,562 controller 74901 -- Deleting Deployment(name='mvp_test_server', app='default')
+INFO 2025-01-21 14:31:25,565 controller 74901 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:31:25,565 controller 74901 -- Removing 1 replica from Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:31:25,566 controller 74901 -- Stopping Replica(id='xr7m2oli', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:31:25,568 controller 74901 -- Stopping Replica(id='41btoj4g', deployment='mvp_test_server', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:31:27,607 controller 74901 -- Replica(id='xr7m2oli', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 14:31:27,608 controller 74901 -- Replica(id='41btoj4g', deployment='mvp_test_server', app='default') is stopped.
+WARNING 2025-01-21 14:31:27,717 controller 74901 -- All resources have shut down, controller exiting.

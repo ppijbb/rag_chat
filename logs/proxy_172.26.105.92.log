@@ -1,0 +1,158 @@
+INFO 2025-01-21 14:16:37,784 proxy 172.26.105.92 -- Proxy starting on node 1c6f9b595d72a643d7cb8f00c280fbee4204c4e10edd9c21c0e31567 (HTTP port: 8504).
+INFO 2025-01-21 14:16:37,848 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:16:37,879 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:16:37,884 proxy 172.26.105.92 -- Created DeploymentHandle 'hcnionso' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:16:37,944 proxy 172.26.105.92 -- Created DeploymentHandle '4rdjezg9' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:16:41,109 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'ehea3tdj'}.
+INFO 2025-01-21 14:19:52,933 proxy 172.26.105.92 -- Proxy starting on node 1d9b36cd7719eda6dfacdd96b584d82d6447b32b44695b82167f5d1e (HTTP port: 8504).
+INFO 2025-01-21 14:19:52,951 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:19:53,010 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:19:53,015 proxy 172.26.105.92 -- Created DeploymentHandle '9sckalq8' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:19:53,085 proxy 172.26.105.92 -- Created DeploymentHandle '760bfsxb' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:19:56,459 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'cn9x4yr8'}.
+INFO 2025-01-21 14:23:41,301 proxy 172.26.105.92 -- Proxy starting on node 6f4585c2aa019e92f45d8db8d238b9abd02387335b1ba19a5c023b3d (HTTP port: 8504).
+INFO 2025-01-21 14:23:41,314 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:23:41,437 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:23:41,441 proxy 172.26.105.92 -- Created DeploymentHandle 'i0ywodr9' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:23:41,515 proxy 172.26.105.92 -- Created DeploymentHandle '4ojdavij' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:23:44,684 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'x4ac2dvw'}.
+INFO 2025-01-21 14:29:39,551 proxy 172.26.105.92 -- Proxy starting on node 2f9d9b7cf74ec5491eba89a9d0a8d500ef692f6b8a5e10fac533b332 (HTTP port: 8504).
+INFO 2025-01-21 14:29:39,566 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:29:39,682 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='mvp_test_server', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:29:39,686 proxy 172.26.105.92 -- Created DeploymentHandle 'r1328udo' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:29:39,734 proxy 172.26.105.92 -- Created DeploymentHandle 'dw1c9vf2' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:29:43,134 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='mvp_test_server', app='default'): {'41btoj4g'}.
+INFO 2025-01-21 14:31:40,295 proxy 172.26.105.92 -- Proxy starting on node 4a008a4e150b04753be72fcf5e4bbfc49e1061a98ae52e63fcc409ce (HTTP port: 8504).
+INFO 2025-01-21 14:31:40,314 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:31:40,415 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='mvp_test_server', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:31:40,423 proxy 172.26.105.92 -- Created DeploymentHandle 'ddkiy3xf' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:31:40,474 proxy 172.26.105.92 -- Created DeploymentHandle 'ovaklixq' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:31:43,788 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='mvp_test_server', app='default'): {'9dzlv8eh'}.
+INFO 2025-01-21 14:34:09,542 proxy 172.26.105.92 -- Proxy starting on node f00fe822d23ae099fa16944d4c75b739371cfafdfaebc67e5e5d8783 (HTTP port: 8504).
+INFO 2025-01-21 14:34:09,555 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:34:09,680 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='mvp_test_server', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:34:09,685 proxy 172.26.105.92 -- Created DeploymentHandle 'lfi3ywpr' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:34:09,690 proxy 172.26.105.92 -- Created DeploymentHandle 'yu2tjzv7' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:34:12,930 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='mvp_test_server', app='default'): {'2kga05hs'}.
+INFO 2025-01-21 14:35:05,587 proxy 172.26.105.92 -- Proxy starting on node ea34d09791a3c46e9dc509cb76951c648ad476e1251861066969d9c1 (HTTP port: 8504).
+INFO 2025-01-21 14:35:05,600 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:35:05,719 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='mvp_test_server', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:35:05,722 proxy 172.26.105.92 -- Created DeploymentHandle 'zi28emqp' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:35:05,794 proxy 172.26.105.92 -- Created DeploymentHandle 'ek160ahl' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:36:05,408 proxy 172.26.105.92 -- Proxy starting on node 58d99b43408861aff6cf0c81d5dd2ae02c493c17bf7d9a9e9abff46f (HTTP port: 8504).
+INFO 2025-01-21 14:36:05,423 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:36:05,523 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='mvp_test_server', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:36:05,528 proxy 172.26.105.92 -- Created DeploymentHandle 'kvjw93hs' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:36:05,532 proxy 172.26.105.92 -- Created DeploymentHandle 'egvge9l4' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:36:08,974 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='mvp_test_server', app='default'): {'z9ordm8k'}.
+INFO 2025-01-21 14:37:14,209 proxy 172.26.105.92 -- Proxy starting on node 3aeaba6eb63e268d4f86f1b255308cabb1a84258234d738764cf1e77 (HTTP port: 8504).
+INFO 2025-01-21 14:37:14,224 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:37:14,357 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='mvp_test_server', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:37:14,361 proxy 172.26.105.92 -- Created DeploymentHandle '1uvtk1yh' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:37:14,415 proxy 172.26.105.92 -- Created DeploymentHandle 'wlu26al4' for Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:37:17,818 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='mvp_test_server', app='default'): {'2nmdabea'}.
+INFO 2025-01-21 14:44:56,911 proxy 172.26.105.92 -- Proxy starting on node 38dad61b7ce9a0f633b942f22bde97bcf5222ea9cb3676a66d394933 (HTTP port: 8504).
+INFO 2025-01-21 14:44:56,926 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:44:57,038 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:44:57,043 proxy 172.26.105.92 -- Created DeploymentHandle 'x2n5xsxk' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:44:57,105 proxy 172.26.105.92 -- Created DeploymentHandle 'c9q7gls5' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:45:00,536 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'a460hjqk', 'r6a5lhnv'}.
+INFO 2025-01-21 14:46:14,042 proxy 172.26.105.92 -- Proxy starting on node b5c89bcb621e57ce2e91dfed5baa527f33ed7c3efd4113440c4686e4 (HTTP port: 8504).
+INFO 2025-01-21 14:46:14,055 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:46:14,191 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:46:14,194 proxy 172.26.105.92 -- Created DeploymentHandle '1vxy19n4' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:46:14,198 proxy 172.26.105.92 -- Created DeploymentHandle 'kj61qaup' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:46:18,438 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'6urgbczz'}.
+INFO 2025-01-21 14:46:18,539 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'6urgbczz', 'jenlfghx', 'lsgyoyv7', '38wubnla'}.
+INFO 2025-01-21 14:46:18,746 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'6urgbczz', 'lsgyoyv7', '38wubnla', 'ksk9g7yp', 'jenlfghx'}.
+INFO 2025-01-21 14:49:00,384 proxy 172.26.105.92 -- Proxy starting on node 5666e6756395a3113eaa2d5a6ad598d67eb62bf03b9c05f5c30c95f0 (HTTP port: 8504).
+INFO 2025-01-21 14:49:00,398 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:49:00,517 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:49:00,522 proxy 172.26.105.92 -- Created DeploymentHandle 'qvun8l38' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:00,526 proxy 172.26.105.92 -- Created DeploymentHandle '6m670k86' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:59,947 proxy 172.26.105.92 -- Proxy starting on node a10b64d675c0ac95af99d14a8d37adc78c0a5ca2a852d86dbed485f8 (HTTP port: 8504).
+INFO 2025-01-21 14:49:59,962 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:50:00,059 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:50:00,064 proxy 172.26.105.92 -- Created DeploymentHandle '4e9lzgfg' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:50:00,067 proxy 172.26.105.92 -- Created DeploymentHandle 'tv6fxe08' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:50:03,973 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'7bo8frsi'}.
+INFO 2025-01-21 14:50:04,075 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'7bo8frsi', 'h7jndtgv', '66v1g5kg'}.
+INFO 2025-01-21 14:50:04,179 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'7bo8frsi', '66v1g5kg', '98kjdrmf', 'h7jndtgv', '9c6i7ucp'}.
+INFO 2025-01-21 14:54:52,301 proxy 172.26.105.92 -- Proxy starting on node 6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240 (HTTP port: 8504).
+INFO 2025-01-21 14:54:52,314 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:54:52,424 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:54:52,428 proxy 172.26.105.92 -- Created DeploymentHandle '43xp948o' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:54:52,433 proxy 172.26.105.92 -- Created DeploymentHandle '30rgl6v2' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:54:56,597 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'c9ilodny'}.
+INFO 2025-01-21 14:54:56,697 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'2k7vkbqh', 've593og4', 'l8x88f0h', 'c9ilodny'}.
+INFO 2025-01-21 14:54:56,906 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'2k7vkbqh', 've593og4', 'l8x88f0h', 'nssasgfl', 'c9ilodny'}.
+INFO 2025-01-21 14:57:30,719 proxy 172.26.105.92 -- Proxy starting on node 4b9fc010699861414e72dc2eaf9c108b1f09b8f41fc7ea45ea4e7f3c (HTTP port: 8504).
+INFO 2025-01-21 14:57:30,733 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 14:57:30,847 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 14:57:30,850 proxy 172.26.105.92 -- Created DeploymentHandle 'i0h0333r' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:57:30,853 proxy 172.26.105.92 -- Created DeploymentHandle '2ya5ina3' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:57:35,202 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'zqao0u06', 'w2difwrm', '7yiux2kg', 'hczv77bz', 'm8bp9skp'}.
+INFO 2025-01-21 15:02:51,589 proxy 172.26.105.92 -- Proxy starting on node 1d357058e307b3b1b19072361264eec7463cca99fa71f9a4741f3209 (HTTP port: 8504).
+INFO 2025-01-21 15:02:51,602 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:02:51,731 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:02:51,735 proxy 172.26.105.92 -- Created DeploymentHandle '3yphtjko' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:02:51,738 proxy 172.26.105.92 -- Created DeploymentHandle 'dzm10hga' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:02:54,975 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'xth8libo'}.
+INFO 2025-01-21 15:05:12,979 proxy 172.26.105.92 -- Proxy starting on node b11312124cedb0acb59071905d12729844e23f25abc2b6e25f2c2b67 (HTTP port: 8504).
+INFO 2025-01-21 15:05:12,993 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:05:13,025 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:05:13,030 proxy 172.26.105.92 -- Created DeploymentHandle '93uz8vro' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:05:13,033 proxy 172.26.105.92 -- Created DeploymentHandle 'zmnep0g5' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:05:16,171 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'uk11ga1q'}.
+INFO 2025-01-21 15:09:10,325 proxy 172.26.105.92 -- Proxy starting on node ea1ec7aee2d8d8000d356d9b03ca393f475eabe9c2a3c67f41528a40 (HTTP port: 8504).
+INFO 2025-01-21 15:09:10,338 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:09:10,370 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:09:10,376 proxy 172.26.105.92 -- Created DeploymentHandle 'muz79xgb' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:09:10,380 proxy 172.26.105.92 -- Created DeploymentHandle 'eozsw2o9' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:09:20,479 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:09:20,479 proxy 172.26.105.92 -- Deleting 1 unused handles.
+INFO 2025-01-21 15:10:23,165 proxy 172.26.105.92 -- Proxy starting on node cb879fbd0418dcb57ed445f1d8619c49333ef4f6ee0cf60352e6e7c5 (HTTP port: 8504).
+INFO 2025-01-21 15:10:23,180 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:10:23,268 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:10:23,272 proxy 172.26.105.92 -- Created DeploymentHandle 'hb93lmto' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:10:23,355 proxy 172.26.105.92 -- Created DeploymentHandle 'gi954231' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:16:28,600 proxy 172.26.105.92 -- Proxy starting on node 0316c51a97066122582a39b60fe6dafc619318893e0fdd2b57881ee7 (HTTP port: 8504).
+INFO 2025-01-21 15:16:28,613 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:18:32,371 proxy 172.26.105.92 -- Proxy starting on node 105ddf61bc3e421db16eb60c51da18a7e5e09c9ea38e8e6eac67e793 (HTTP port: 8504).
+INFO 2025-01-21 15:18:32,385 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:21:14,439 proxy 172.26.105.92 -- Proxy starting on node f1383ce50e2b84ede7e530184ac3bd817616ed8c1b1a28e961c6a71b (HTTP port: 8504).
+INFO 2025-01-21 15:21:14,453 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:21:54,016 proxy 172.26.105.92 -- Proxy starting on node 9062c320548d1fe4dbfca7b5ea96414422daae568b69cedd240e8784 (HTTP port: 8504).
+INFO 2025-01-21 15:21:54,031 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:21:54,064 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:21:54,068 proxy 172.26.105.92 -- Created DeploymentHandle 'axo1pc1g' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:21:54,105 proxy 172.26.105.92 -- Created DeploymentHandle 'wmr741xa' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:21:57,415 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'l0pm1d73'}.
+INFO 2025-01-21 15:24:24,684 proxy 172.26.105.92 -- Proxy starting on node 5ad1745c197362becf9f1434c11355d008714cf504c16208442e3a8f (HTTP port: 8504).
+INFO 2025-01-21 15:24:24,700 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:24:24,732 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:24:24,736 proxy 172.26.105.92 -- Created DeploymentHandle '5saey8mo' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:24:24,794 proxy 172.26.105.92 -- Created DeploymentHandle 'qt934y11' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:24:28,086 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'7ij7h804'}.
+INFO 2025-01-21 15:34:15,582 proxy 172.26.105.92 -- Proxy starting on node ce53088ce3b235cf0f8f001548a4e297311547d18b73954388d5c207 (HTTP port: 8504).
+INFO 2025-01-21 15:34:15,595 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:34:15,701 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:34:15,706 proxy 172.26.105.92 -- Created DeploymentHandle 'jj5h7gfc' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:34:15,709 proxy 172.26.105.92 -- Created DeploymentHandle 'ur3bf4yj' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:34:18,946 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'t9xubvuw'}.
+INFO 2025-01-21 15:35:35,561 proxy 172.26.105.92 -- Proxy starting on node b5158301e14634343f8f542119141f23af8b0ec1ea9739decec3d6ba (HTTP port: 8504).
+INFO 2025-01-21 15:35:35,575 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:35:35,699 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:35:35,703 proxy 172.26.105.92 -- Created DeploymentHandle 'shuyp6a4' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:35:35,784 proxy 172.26.105.92 -- Created DeploymentHandle 'm35dimga' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:35:39,051 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'jfsi8ld1'}.
+INFO 2025-01-21 15:37:10,074 proxy 172.26.105.92 -- Proxy starting on node 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f (HTTP port: 8504).
+INFO 2025-01-21 15:37:10,078 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:37:25,516 proxy 172.26.105.92 -- Proxy starting on node 038c2153ae211a5b0446ba8276eae71efbf15786b46aa5e9b6efb39f (HTTP port: 8504).
+INFO 2025-01-21 15:37:25,520 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:38:26,847 proxy 172.26.105.92 -- Proxy starting on node 2e6708bcb9ad7f8013e07732f34feb6169cd61485b9677713f6b2eb5 (HTTP port: 8504).
+INFO 2025-01-21 15:38:26,860 proxy 172.26.105.92 -- Got updated endpoints: {}.
+INFO 2025-01-21 15:38:26,986 proxy 172.26.105.92 -- Got updated endpoints: {Deployment(name='APIIngress', app='default'): EndpointInfo(route='/', app_is_cross_language=False)}.
+INFO 2025-01-21 15:38:26,990 proxy 172.26.105.92 -- Created DeploymentHandle 'v2g2eoq0' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:38:27,045 proxy 172.26.105.92 -- Created DeploymentHandle '2baqxl95' for Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:38:30,550 proxy 172.26.105.92 -- Got updated replicas for Deployment(name='APIIngress', app='default'): {'a65zvp0s'}.

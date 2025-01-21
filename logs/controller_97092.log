@@ -1,0 +1,22 @@
+INFO 2025-01-21 15:02:51,188 controller 97092 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 15:02:51,194 controller 97092 -- Starting proxy on node '1d357058e307b3b1b19072361264eec7463cca99fa71f9a4741f3209' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 15:02:51,727 controller 97092 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 15:02:51,728 controller 97092 -- Deploying new version of Deployment(name='APIIngress', app='default') (initial target replicas: 1).
+INFO 2025-01-21 15:02:51,832 controller 97092 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 15:02:51,833 controller 97092 -- Starting Replica(id='lx5o0gml', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 15:02:51,834 controller 97092 -- Adding 1 replica to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:02:51,834 controller 97092 -- Starting Replica(id='xth8libo', deployment='APIIngress', app='default').
+INFO 2025-01-21 15:02:54,867 controller 97092 -- Replica(id='lx5o0gml', deployment='MedicalInquiryService', app='default') started successfully on node '1d357058e307b3b1b19072361264eec7463cca99fa71f9a4741f3209' after 3.0s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 15:02:54,971 controller 97092 -- Replica(id='xth8libo', deployment='APIIngress', app='default') started successfully on node '1d357058e307b3b1b19072361264eec7463cca99fa71f9a4741f3209' after 3.1s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 15:05:01,476 controller 97092 -- Controller shutdown started.
+INFO 2025-01-21 15:05:01,477 controller 97092 -- Deleting app 'default'.
+INFO 2025-01-21 15:05:01,480 controller 97092 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 15:05:01,480 controller 97092 -- Deleting Deployment(name='APIIngress', app='default')
+INFO 2025-01-21 15:05:01,484 controller 97092 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 15:05:01,485 controller 97092 -- Removing 1 replica from Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:05:01,485 controller 97092 -- Stopping Replica(id='lx5o0gml', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 15:05:01,487 controller 97092 -- Stopping Replica(id='xth8libo', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 15:05:03,098 controller 97092 -- Replica(id='lx5o0gml', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 15:05:03,099 controller 97092 -- Replica(id='xth8libo', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 15:05:03,101 controller 97092 -- Removing proxy on removed node '1d357058e307b3b1b19072361264eec7463cca99fa71f9a4741f3209'.
+WARNING 2025-01-21 15:05:03,207 controller 97092 -- All resources have shut down, controller exiting.

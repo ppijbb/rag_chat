@@ -1,0 +1,712 @@
+INFO 2025-01-21 14:48:59,971 controller 87503 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:48:59,977 controller 87503 -- Starting proxy on node '5666e6756395a3113eaa2d5a6ad598d67eb62bf03b9c05f5c30c95f0' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:49:00,512 controller 87503 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:49:00,514 controller 87503 -- Deploying new version of Deployment(name='APIIngress', app='default') (initial target replicas: 5).
+INFO 2025-01-21 14:49:00,617 controller 87503 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:49:00,618 controller 87503 -- Starting Replica(id='9nhb3uti', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:49:00,619 controller 87503 -- Adding 5 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:00,619 controller 87503 -- Starting Replica(id='b88zifjb', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:00,620 controller 87503 -- Starting Replica(id='59gns1bb', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:00,620 controller 87503 -- Starting Replica(id='jdaw9xym', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:00,621 controller 87503 -- Starting Replica(id='mdfhx8sc', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:00,621 controller 87503 -- Starting Replica(id='1yl6e1wm', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:04,886 controller 87503 -- Replica(id='9nhb3uti', deployment='MedicalInquiryService', app='default') started successfully on node '5666e6756395a3113eaa2d5a6ad598d67eb62bf03b9c05f5c30c95f0' after 4.3s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+ERROR 2025-01-21 14:49:04,887 controller 87503 -- Exception in Replica(id='b88zifjb', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=87507, ip=172.26.105.92, actor_id=92332400874186765550615701000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f2130e3d550>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:04,890 controller 87503 -- Stopping Replica(id='b88zifjb', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:04,893 controller 87503 -- Exception in Replica(id='jdaw9xym', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=87508, ip=172.26.105.92, actor_id=452c20aabac0e1e4013b052001000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7fb140654e60>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:04,893 controller 87503 -- Stopping Replica(id='jdaw9xym', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:04,895 controller 87503 -- Adding 2 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:04,895 controller 87503 -- Starting Replica(id='ogaxm7lf', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:04,895 controller 87503 -- Starting Replica(id='obvbvpny', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:05,010 controller 87503 -- Replica(id='b88zifjb', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:05,014 controller 87503 -- Replica(id='jdaw9xym', deployment='APIIngress', app='default') is stopped.
+ERROR 2025-01-21 14:49:05,118 controller 87503 -- Exception in Replica(id='59gns1bb', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=87505, ip=172.26.105.92, actor_id=42a4f2b882502428f449a1e601000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f5ce8560920>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:05,119 controller 87503 -- Stopping Replica(id='59gns1bb', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:05,119 controller 87503 -- Exception in Replica(id='mdfhx8sc', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=87506, ip=172.26.105.92, actor_id=53cee9fe6f303ce04d00db5201000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f0fa4440920>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:05,120 controller 87503 -- Stopping Replica(id='mdfhx8sc', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:05,120 controller 87503 -- Exception in Replica(id='1yl6e1wm', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=87509, ip=172.26.105.92, actor_id=e978b578875c8575a2ca716601000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f8ad9ec95e0>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:05,121 controller 87503 -- Stopping Replica(id='1yl6e1wm', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:05,122 controller 87503 -- Adding 3 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:05,122 controller 87503 -- Starting Replica(id='fdshyvxz', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:05,122 controller 87503 -- Starting Replica(id='4q992mvi', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:05,122 controller 87503 -- Starting Replica(id='em86uarx', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:05,243 controller 87503 -- Replica(id='59gns1bb', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:05,248 controller 87503 -- Replica(id='mdfhx8sc', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:05,251 controller 87503 -- Replica(id='1yl6e1wm', deployment='APIIngress', app='default') is stopped.
+ERROR 2025-01-21 14:49:09,009 controller 87503 -- Exception in Replica(id='obvbvpny', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88045, ip=172.26.105.92, actor_id=2bb780631db6fc3a2c4305c501000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f50f24575c0>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:09,010 controller 87503 -- Stopping Replica(id='obvbvpny', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:09,011 controller 87503 -- Adding 1 replica to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:09,011 controller 87503 -- Starting Replica(id='da9bms4a', deployment='APIIngress', app='default').
+ERROR 2025-01-21 14:49:09,120 controller 87503 -- Exception in Replica(id='ogaxm7lf', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88046, ip=172.26.105.92, actor_id=cc5406ea9f9e6101ca37f95d01000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f3b805b7cb0>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:09,121 controller 87503 -- Stopping Replica(id='ogaxm7lf', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:09,122 controller 87503 -- Exception in Replica(id='fdshyvxz', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88078, ip=172.26.105.92, actor_id=ff0855ea3dd7106f7cb7117101000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f4a544a5760>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:09,123 controller 87503 -- Stopping Replica(id='fdshyvxz', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:09,123 controller 87503 -- Exception in Replica(id='4q992mvi', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88077, ip=172.26.105.92, actor_id=c3e56c480bd248c0cb44245c01000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f6ffc5c9850>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:09,124 controller 87503 -- Stopping Replica(id='4q992mvi', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:09,127 controller 87503 -- Replica(id='obvbvpny', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:09,128 controller 87503 -- Replica(id='ogaxm7lf', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:09,135 controller 87503 -- Replica(id='fdshyvxz', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:09,138 controller 87503 -- Replica(id='4q992mvi', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:09,138 controller 87503 -- Adding 3 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:09,139 controller 87503 -- Starting Replica(id='tqwrjt65', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:09,139 controller 87503 -- Starting Replica(id='7kr1vxua', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:09,139 controller 87503 -- Starting Replica(id='8pn0fazl', deployment='APIIngress', app='default').
+ERROR 2025-01-21 14:49:09,580 controller 87503 -- Exception in Replica(id='em86uarx', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88225, ip=172.26.105.92, actor_id=ede21e507d353d7c376912ac01000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7fcb2c085970>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:09,581 controller 87503 -- Stopping Replica(id='em86uarx', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:09,583 controller 87503 -- Adding 1 replica to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:09,583 controller 87503 -- Starting Replica(id='fn6c1lsc', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:09,700 controller 87503 -- Replica(id='em86uarx', deployment='APIIngress', app='default') is stopped.
+ERROR 2025-01-21 14:49:13,150 controller 87503 -- Exception in Replica(id='da9bms4a', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88370, ip=172.26.105.92, actor_id=030202a800ba5d9f7477ad8901000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f1608a2d940>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:13,152 controller 87503 -- Stopping Replica(id='da9bms4a', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:13,154 controller 87503 -- Adding 1 replica to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:13,155 controller 87503 -- Starting Replica(id='fk3ibq2t', deployment='APIIngress', app='default').
+ERROR 2025-01-21 14:49:13,263 controller 87503 -- Exception in Replica(id='tqwrjt65', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88390, ip=172.26.105.92, actor_id=9e69a169b79e58eeda15eff401000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f3de5231970>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:13,264 controller 87503 -- Stopping Replica(id='tqwrjt65', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:13,265 controller 87503 -- Exception in Replica(id='7kr1vxua', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88389, ip=172.26.105.92, actor_id=06f471d9a6700a14c5808a4101000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f89583a9a30>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:13,265 controller 87503 -- Stopping Replica(id='7kr1vxua', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:13,266 controller 87503 -- Exception in Replica(id='8pn0fazl', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88391, ip=172.26.105.92, actor_id=63dd8bc72604ab43d0f39de501000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7f49209c1640>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:13,266 controller 87503 -- Stopping Replica(id='8pn0fazl', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:13,271 controller 87503 -- Replica(id='da9bms4a', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:13,273 controller 87503 -- Replica(id='tqwrjt65', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:13,277 controller 87503 -- Replica(id='7kr1vxua', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:13,280 controller 87503 -- Replica(id='8pn0fazl', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:13,281 controller 87503 -- Adding 3 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:13,281 controller 87503 -- Starting Replica(id='ghx8wxlm', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:13,282 controller 87503 -- Starting Replica(id='3ej228yr', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:49:13,282 controller 87503 -- Starting Replica(id='zp6om78n', deployment='APIIngress', app='default').
+ERROR 2025-01-21 14:49:13,718 controller 87503 -- Exception in Replica(id='fn6c1lsc', deployment='APIIngress', app='default'), the replica will be stopped.
+Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/deployment_state.py", line 696, in check_ready
+    ) = ray.get(self._ready_obj_ref)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/auto_init_hook.py", line 21, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 2755, in get
+    values, debugger_breakpoint = worker.get_objects(object_refs, timeout=timeout)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/_private/worker.py", line 906, in get_objects
+    raise value.as_instanceof_cause()
+ray.exceptions.RayTaskError(RuntimeError): [36mray::ServeReplica:default:APIIngress.initialize_and_get_metadata()[39m (pid=88538, ip=172.26.105.92, actor_id=9b3fae5b89ccad437985491b01000000, repr=<ray.serve._private.replica.ServeReplica:default:APIIngress object at 0x7efe9014d970>)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 872, in initialize_and_get_metadata
+    await self._replica_impl.initialize(deployment_config)
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 616, in initialize
+    raise RuntimeError(traceback.format_exc()) from None
+RuntimeError: Traceback (most recent call last):
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 598, in initialize
+    self._user_callable_asgi_app = await asyncio.wrap_future(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1130, in initialize_callable
+    await self._call_func_or_gen(
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/_private/replica.py", line 1091, in _call_func_or_gen
+    result = callable(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/miniconda3/envs/mvp_server/lib/python3.12/site-packages/ray/serve/api.py", line 221, in __init__
+    cls.__init__(self, *args, **kwargs)
+  File "/home/user/workspace/mvp_server/app/main.py", line 71, in __init__
+    self.server_logger.info(f"Routing {cls.router.__name__} to Application Updated from {cls.__name__}")
+                                       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'APIRouter' object has no attribute '__name__'. Did you mean: '__ne__'?
+INFO 2025-01-21 14:49:13,719 controller 87503 -- Stopping Replica(id='fn6c1lsc', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+ERROR 2025-01-21 14:49:13,722 controller 87503 -- The deployments ['APIIngress'] are UNHEALTHY.
+INFO 2025-01-21 14:49:13,826 controller 87503 -- Replica(id='fn6c1lsc', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:14,664 controller 87503 -- Controller shutdown started.
+INFO 2025-01-21 14:49:14,666 controller 87503 -- Deleting app 'default'.
+INFO 2025-01-21 14:49:14,668 controller 87503 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:49:14,669 controller 87503 -- Deleting Deployment(name='APIIngress', app='default')
+INFO 2025-01-21 14:49:14,674 controller 87503 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:49:14,674 controller 87503 -- Removing 4 replicas from Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:49:14,674 controller 87503 -- Stopping Replica(id='9nhb3uti', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:49:14,677 controller 87503 -- Stopping Replica(id='fk3ibq2t', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:14,677 controller 87503 -- Stopping Replica(id='ghx8wxlm', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:14,678 controller 87503 -- Stopping Replica(id='3ej228yr', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:14,678 controller 87503 -- Stopping Replica(id='zp6om78n', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:49:16,724 controller 87503 -- Replica(id='9nhb3uti', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 14:49:17,408 controller 87503 -- Replica(id='fk3ibq2t', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:17,420 controller 87503 -- Replica(id='ghx8wxlm', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:17,430 controller 87503 -- Replica(id='3ej228yr', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:49:17,445 controller 87503 -- Replica(id='zp6om78n', deployment='APIIngress', app='default') is stopped.
+WARNING 2025-01-21 14:49:17,560 controller 87503 -- All resources have shut down, controller exiting.

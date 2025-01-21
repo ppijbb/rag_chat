@@ -1,0 +1,37 @@
+INFO 2025-01-21 14:54:51,881 controller 92230 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:54:51,887 controller 92230 -- Starting proxy on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:54:52,421 controller 92230 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:54:52,422 controller 92230 -- Deploying new version of Deployment(name='APIIngress', app='default') (initial target replicas: 5).
+INFO 2025-01-21 14:54:52,525 controller 92230 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:54:52,525 controller 92230 -- Starting Replica(id='ugjyyl79', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:54:52,526 controller 92230 -- Adding 5 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:54:52,527 controller 92230 -- Starting Replica(id='2k7vkbqh', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:54:52,527 controller 92230 -- Starting Replica(id='nssasgfl', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:54:52,528 controller 92230 -- Starting Replica(id='l8x88f0h', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:54:52,528 controller 92230 -- Starting Replica(id='ve593og4', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:54:52,528 controller 92230 -- Starting Replica(id='c9ilodny', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:54:56,582 controller 92230 -- Replica(id='ugjyyl79', deployment='MedicalInquiryService', app='default') started successfully on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' after 4.1s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 14:54:56,585 controller 92230 -- Replica(id='c9ilodny', deployment='APIIngress', app='default') started successfully on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' after 4.1s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:54:56,690 controller 92230 -- Replica(id='2k7vkbqh', deployment='APIIngress', app='default') started successfully on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' after 4.2s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:54:56,691 controller 92230 -- Replica(id='l8x88f0h', deployment='APIIngress', app='default') started successfully on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' after 4.2s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:54:56,692 controller 92230 -- Replica(id='ve593og4', deployment='APIIngress', app='default') started successfully on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' after 4.2s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:54:56,902 controller 92230 -- Replica(id='nssasgfl', deployment='APIIngress', app='default') started successfully on node '6e428f52f86323662b0119903cfd79144c722b4efed0c0c8fafd5240' after 4.4s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:57:17,924 controller 92230 -- Controller shutdown started.
+INFO 2025-01-21 14:57:17,925 controller 92230 -- Deleting app 'default'.
+INFO 2025-01-21 14:57:17,928 controller 92230 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:57:17,928 controller 92230 -- Deleting Deployment(name='APIIngress', app='default')
+INFO 2025-01-21 14:57:17,932 controller 92230 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:57:17,932 controller 92230 -- Removing 5 replicas from Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:57:17,932 controller 92230 -- Stopping Replica(id='ugjyyl79', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:57:17,935 controller 92230 -- Stopping Replica(id='c9ilodny', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:57:17,937 controller 92230 -- Stopping Replica(id='2k7vkbqh', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:57:17,937 controller 92230 -- Stopping Replica(id='l8x88f0h', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:57:17,938 controller 92230 -- Stopping Replica(id='ve593og4', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:57:17,938 controller 92230 -- Stopping Replica(id='nssasgfl', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:57:19,986 controller 92230 -- Replica(id='ugjyyl79', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 14:57:19,990 controller 92230 -- Replica(id='c9ilodny', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:57:19,992 controller 92230 -- Replica(id='2k7vkbqh', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:57:20,000 controller 92230 -- Replica(id='l8x88f0h', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:57:20,004 controller 92230 -- Replica(id='ve593og4', deployment='APIIngress', app='default') is stopped.
+INFO 2025-01-21 14:57:20,011 controller 92230 -- Replica(id='nssasgfl', deployment='APIIngress', app='default') is stopped.
+WARNING 2025-01-21 14:57:20,123 controller 92230 -- All resources have shut down, controller exiting.

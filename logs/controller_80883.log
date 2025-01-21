@@ -1,0 +1,18 @@
+INFO 2025-01-21 14:36:04,980 controller 80883 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:36:04,985 controller 80883 -- Starting proxy on node '58d99b43408861aff6cf0c81d5dd2ae02c493c17bf7d9a9e9abff46f' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:36:05,520 controller 80883 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:36:05,521 controller 80883 -- Deploying new version of Deployment(name='mvp_test_server', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:36:05,624 controller 80883 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:36:05,624 controller 80883 -- Starting Replica(id='m8i3youd', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:36:05,625 controller 80883 -- Adding 1 replica to Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:36:05,626 controller 80883 -- Starting Replica(id='z9ordm8k', deployment='mvp_test_server', app='default').
+INFO 2025-01-21 14:36:08,866 controller 80883 -- Replica(id='m8i3youd', deployment='MedicalInquiryService', app='default') started successfully on node '58d99b43408861aff6cf0c81d5dd2ae02c493c17bf7d9a9e9abff46f' after 3.2s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 14:36:08,970 controller 80883 -- Replica(id='z9ordm8k', deployment='mvp_test_server', app='default') started successfully on node '58d99b43408861aff6cf0c81d5dd2ae02c493c17bf7d9a9e9abff46f' after 3.3s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:37:04,098 controller 80883 -- Controller shutdown started.
+INFO 2025-01-21 14:37:04,099 controller 80883 -- Deleting app 'default'.
+INFO 2025-01-21 14:37:04,101 controller 80883 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:37:04,101 controller 80883 -- Deleting Deployment(name='mvp_test_server', app='default')
+INFO 2025-01-21 14:37:04,104 controller 80883 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:37:04,105 controller 80883 -- Removing 1 replica from Deployment(name='mvp_test_server', app='default').
+INFO 2025-01-21 14:37:04,105 controller 80883 -- Stopping Replica(id='m8i3youd', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:37:04,107 controller 80883 -- Stopping Replica(id='z9ordm8k', deployment='mvp_test_server', app='default') (currently ReplicaState.RUNNING).

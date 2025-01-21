@@ -1,0 +1,21 @@
+INFO 2025-01-21 14:16:37,333 controller 67816 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:16:37,338 controller 67816 -- Starting proxy on node '1c6f9b595d72a643d7cb8f00c280fbee4204c4e10edd9c21c0e31567' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:16:37,875 controller 67816 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:16:37,876 controller 67816 -- Deploying new version of Deployment(name='APIIngress', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:16:37,979 controller 67816 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:16:37,979 controller 67816 -- Starting Replica(id='p3g3fawa', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:16:37,980 controller 67816 -- Adding 1 replica to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:16:37,980 controller 67816 -- Starting Replica(id='ehea3tdj', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:16:41,000 controller 67816 -- Replica(id='p3g3fawa', deployment='MedicalInquiryService', app='default') started successfully on node '1c6f9b595d72a643d7cb8f00c280fbee4204c4e10edd9c21c0e31567' after 3.0s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 14:16:41,105 controller 67816 -- Replica(id='ehea3tdj', deployment='APIIngress', app='default') started successfully on node '1c6f9b595d72a643d7cb8f00c280fbee4204c4e10edd9c21c0e31567' after 3.1s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:19:16,863 controller 67816 -- Controller shutdown started.
+INFO 2025-01-21 14:19:16,864 controller 67816 -- Deleting app 'default'.
+INFO 2025-01-21 14:19:16,866 controller 67816 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:19:16,867 controller 67816 -- Deleting Deployment(name='APIIngress', app='default')
+INFO 2025-01-21 14:19:16,880 controller 67816 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:19:16,880 controller 67816 -- Removing 1 replica from Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:19:16,880 controller 67816 -- Stopping Replica(id='p3g3fawa', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:19:16,882 controller 67816 -- Stopping Replica(id='ehea3tdj', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:19:18,916 controller 67816 -- Replica(id='p3g3fawa', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 14:19:18,918 controller 67816 -- Replica(id='ehea3tdj', deployment='APIIngress', app='default') is stopped.
+WARNING 2025-01-21 14:19:19,026 controller 67816 -- All resources have shut down, controller exiting.

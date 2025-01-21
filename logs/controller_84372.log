@@ -1,0 +1,34 @@
+INFO 2025-01-21 14:44:56,493 controller 84372 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 14:44:56,499 controller 84372 -- Starting proxy on node '38dad61b7ce9a0f633b942f22bde97bcf5222ea9cb3676a66d394933' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 14:44:57,035 controller 84372 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 14:44:57,036 controller 84372 -- Deploying new version of Deployment(name='APIIngress', app='default') (initial target replicas: 5).
+INFO 2025-01-21 14:44:57,139 controller 84372 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:44:57,139 controller 84372 -- Starting Replica(id='fep91ym7', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:44:57,140 controller 84372 -- Adding 5 replicas to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:44:57,140 controller 84372 -- Starting Replica(id='a460hjqk', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:44:57,141 controller 84372 -- Starting Replica(id='r6a5lhnv', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:44:57,141 controller 84372 -- Starting Replica(id='n2zq30zr', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:44:57,141 controller 84372 -- Starting Replica(id='tyt2yddh', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:44:57,141 controller 84372 -- Starting Replica(id='1dl89s83', deployment='APIIngress', app='default').
+INFO 2025-01-21 14:45:00,424 controller 84372 -- Replica(id='fep91ym7', deployment='MedicalInquiryService', app='default') started successfully on node '38dad61b7ce9a0f633b942f22bde97bcf5222ea9cb3676a66d394933' after 3.3s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 14:45:00,528 controller 84372 -- Replica(id='a460hjqk', deployment='APIIngress', app='default') started successfully on node '38dad61b7ce9a0f633b942f22bde97bcf5222ea9cb3676a66d394933' after 3.4s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 14:45:00,529 controller 84372 -- Replica(id='r6a5lhnv', deployment='APIIngress', app='default') started successfully on node '38dad61b7ce9a0f633b942f22bde97bcf5222ea9cb3676a66d394933' after 3.4s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+WARNING 2025-01-21 14:45:27,225 controller 84372 -- Deployment 'APIIngress' in application 'default' has 3 replicas that have taken more than 30s to be scheduled.
+This may be due to waiting for the cluster to auto-scale or for a runtime environment to be installed.
+Resources required for each replica:
+[{"CPU": 2.5}]
+Total resources available:
+{}
+Use `ray status` for more details.
+INFO 2025-01-21 14:45:48,496 controller 84372 -- Controller shutdown started.
+INFO 2025-01-21 14:45:48,497 controller 84372 -- Deleting app 'default'.
+INFO 2025-01-21 14:45:48,499 controller 84372 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 14:45:48,500 controller 84372 -- Deleting Deployment(name='APIIngress', app='default')
+INFO 2025-01-21 14:45:48,504 controller 84372 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 14:45:48,504 controller 84372 -- Removing 5 replicas from Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 14:45:48,504 controller 84372 -- Stopping Replica(id='fep91ym7', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:45:48,505 controller 84372 -- Stopping Replica(id='n2zq30zr', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:45:48,507 controller 84372 -- Stopping Replica(id='tyt2yddh', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:45:48,507 controller 84372 -- Stopping Replica(id='1dl89s83', deployment='APIIngress', app='default') (currently ReplicaState.STARTING).
+INFO 2025-01-21 14:45:48,507 controller 84372 -- Stopping Replica(id='a460hjqk', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 14:45:48,508 controller 84372 -- Stopping Replica(id='r6a5lhnv', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).

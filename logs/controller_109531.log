@@ -1,0 +1,21 @@
+INFO 2025-01-21 15:21:53,625 controller 109531 -- Controller starting (version='2.40.0').
+INFO 2025-01-21 15:21:53,629 controller 109531 -- Starting proxy on node '9062c320548d1fe4dbfca7b5ea96414422daae568b69cedd240e8784' listening on '0.0.0.0:8504'.
+INFO 2025-01-21 15:21:54,061 controller 109531 -- Deploying new version of Deployment(name='MedicalInquiryService', app='default') (initial target replicas: 1).
+INFO 2025-01-21 15:21:54,062 controller 109531 -- Deploying new version of Deployment(name='APIIngress', app='default') (initial target replicas: 1).
+INFO 2025-01-21 15:21:54,165 controller 109531 -- Adding 1 replica to Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 15:21:54,165 controller 109531 -- Starting Replica(id='mlpmqicw', deployment='MedicalInquiryService', app='default').
+INFO 2025-01-21 15:21:54,166 controller 109531 -- Adding 1 replica to Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:21:54,166 controller 109531 -- Starting Replica(id='l0pm1d73', deployment='APIIngress', app='default').
+INFO 2025-01-21 15:21:57,202 controller 109531 -- Replica(id='mlpmqicw', deployment='MedicalInquiryService', app='default') started successfully on node '9062c320548d1fe4dbfca7b5ea96414422daae568b69cedd240e8784' after 3.0s. Replica constructor, reconfigure method, and initial health check took 0.0s.
+INFO 2025-01-21 15:21:57,411 controller 109531 -- Replica(id='l0pm1d73', deployment='APIIngress', app='default') started successfully on node '9062c320548d1fe4dbfca7b5ea96414422daae568b69cedd240e8784' after 3.2s. Replica constructor, reconfigure method, and initial health check took 0.1s.
+INFO 2025-01-21 15:24:03,632 controller 109531 -- Controller shutdown started.
+INFO 2025-01-21 15:24:03,633 controller 109531 -- Deleting app 'default'.
+INFO 2025-01-21 15:24:03,635 controller 109531 -- Deleting Deployment(name='MedicalInquiryService', app='default')
+INFO 2025-01-21 15:24:03,636 controller 109531 -- Deleting Deployment(name='APIIngress', app='default')
+INFO 2025-01-21 15:24:03,639 controller 109531 -- Removing 1 replica from Deployment(name='MedicalInquiryService', app='default').
+INFO 2025-01-21 15:24:03,639 controller 109531 -- Removing 1 replica from Deployment(name='APIIngress', app='default').
+INFO 2025-01-21 15:24:03,639 controller 109531 -- Stopping Replica(id='mlpmqicw', deployment='MedicalInquiryService', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 15:24:03,641 controller 109531 -- Stopping Replica(id='l0pm1d73', deployment='APIIngress', app='default') (currently ReplicaState.RUNNING).
+INFO 2025-01-21 15:24:05,687 controller 109531 -- Replica(id='mlpmqicw', deployment='MedicalInquiryService', app='default') is stopped.
+INFO 2025-01-21 15:24:05,690 controller 109531 -- Replica(id='l0pm1d73', deployment='APIIngress', app='default') is stopped.
+WARNING 2025-01-21 15:24:05,797 controller 109531 -- All resources have shut down, controller exiting.
