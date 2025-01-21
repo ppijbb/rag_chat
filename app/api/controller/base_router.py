@@ -27,6 +27,7 @@ class BaseIngress(ABC):
     
     @abstractmethod
     def register_routes(self, router:APIRouter):
-        self.router = router
+        if self.routing:
+            self.router = router
         pass
 

@@ -14,6 +14,7 @@ from app.api.controller import MedicalInquiryRouterIngress
 from app.service.medical_inquiry import MedicalInquiryService
 
 from app.core.lifespan import service_lifecycle
+from app.core.langchain_module.llm import DDG_LLM
 
 
 app = FastAPI(
@@ -24,7 +25,7 @@ app = FastAPI(
     version="0.1.0",
     # lifespan=service_lifecycle
     )
-
+app.state.global_llm = DDG_LLM()
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -66,16 +67,15 @@ class APIIngress(
         # 추가 라우터가 있으면 계속 등록
         for cls in self.__class__.mro():
             if hasattr(cls, "routing"):
-                if cls.routing:
-                    cls.service = self.service
-                    cls.service_as_stream = self.service_as_stream
-                    cls.register_routes(self=cls)
-                    app.include_router(
-                        cls.router,
-                        prefix=cls.prefix,
-                        tags=cls.tags,
-                        include_in_schema=cls.include_in_schema)
-                    self.server_logger.info(f"Routing {cls.prefix} to Application Updated from {cls.__name__}")
+                cls.service = self.service
+                cls.service_as_stream = self.service_as_stream
+                cls.register_routes(self=cls)
+                app.include_router(
+                    cls.router,
+                    prefix=cls.prefix,
+                    tags=cls.tags,
+                    include_in_schema=cls.include_in_schema)
+                self.server_logger.info(f"Routing {cls.prefix} to Application Updated from {cls.__name__}")
 
     @app.get("/health")
     async def healthcheck(self,):
@@ -100,17 +100,18 @@ def build_app(
         http_options={
             "host": "0.0.0.0",
             "port": cli_args.get("port", 8504),
-            # "location": "EveryNode"
+            "location": "HeadOnly"
             },
         logging_config=LoggingConfig(
             log_level="INFO",
             logs_dir="./logs",
-            enable_access_log=True)
+            enable_access_log=True
+            )
         )
     return APIIngress.options(
         ).bind(
             service=MedicalInquiryService.options(
                 ).bind(
-                    # llm=app.state.global_llm
+                    llm=app.state.global_llm
                 )
             )
