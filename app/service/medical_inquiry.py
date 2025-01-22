@@ -14,6 +14,7 @@ from langchain.retrievers import EnsembleRetriever, ContextualCompressionRetriev
 
 from langchain_core.prompts.prompt import PromptTemplate
 from langchain_core.messages import SystemMessage
+from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable, Runnable
 
 from langchain_community.retrievers import BM25Retriever
@@ -113,8 +114,11 @@ Task를 수행하기 위한 3 단계에 대한 가이드라인입니다.
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             system_prompt=self.system_prompt,
-            memory=ConversationBufferMemory(memory_key=memory_key)
-        )
+            memory=ConversationBufferMemory(
+                chat_memory=InMemoryChatMessageHistory(),
+                return_messages=True,
+                memory_key=memory_key)
+            )
         return await rag_chain.ainvoke({"input": {"question": text}})
 
     # Adaptive RAG components
@@ -278,9 +282,9 @@ Task를 수행하기 위한 3 단계에 대한 가이드라인입니다.
                     SystemMessage(content=system_prompt),
                     MessagesPlaceholder("history"),
                     ("human", "\n"
-                            "Contexts:\n{context}\n\n"
-                            "Screened Intents:\n{intent}\n\n"
-                            "Utterance: {question}"), # HummaMessage 로 넘기는 경우, formatting이 안되는 문제
+                              "Contexts:\n{context}\n\n"
+                              "Screened Intents:\n{intent}\n\n"
+                              "Utterance: {question}"), # HummaMessage 로 넘기는 경우, formatting이 안되는 문제
                 ])
             | self.llm
             | StrOutputParser()
