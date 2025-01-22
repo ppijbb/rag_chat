@@ -107,7 +107,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
                 return StreamingResponse(
-                    content=self.service_as_stream.summarize.remote(
+                    content=self.service_as_stream.inquiry_stream.remote(
                         text=request.text, 
                         stream=True),
                     media_type="text/event-stream")

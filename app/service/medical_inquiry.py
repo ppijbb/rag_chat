@@ -121,6 +121,21 @@ Task를 수행하기 위한 3 단계에 대한 가이드라인입니다.
             )
         return await rag_chain.ainvoke({"input": {"question": text}})
 
+    async def inquiry_stream(
+        self,
+        text:str,
+        memory_key: str = "history"
+    ):
+        rag_chain = self.get_rag_chain(
+            vectorstore=self.vectorstore,
+            system_prompt=self.system_prompt,
+            memory=ConversationBufferMemory(
+                chat_memory=InMemoryChatMessageHistory(),
+                return_messages=True,
+                memory_key=memory_key)
+            )
+        return await rag_chain.astream({"input": {"question": text}})
+
     # Adaptive RAG components
     def generate_queries(self, question: str) -> List[str]:
         prompt = ChatPromptTemplate.from_messages([
