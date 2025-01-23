@@ -1,10 +1,7 @@
-# 기본 이미지 선택
-FROM python:3.10-slim-bookworm as builder
+# 첫 번째 스테이지: requirements-stage
+FROM python:3.12-slim AS builder
 
-# 빌드 시 필요한 인자 정의
-ARG HF_TOKEN
-ENV HF_TOKEN=${HF_TOKEN} \
-    PYTHONDONTWRITEBYTECODE=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
@@ -17,42 +14,32 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # 작업 디렉토리 설정
+WORKDIR /tmp
+
+# pyproject.toml과 poetry.lock 복사
+COPY pyproject.toml poetry.lock* /tmp/
+
+# Poetry 설치
+RUN pip install poetry && poetry self add poetry-plugin-export
+
+# requirements.txt 생성
+RUN poetry export -f requirements.txt --without-hashes --output requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 두 번째 스테이지: 최종 이미지
+FROM python:3.12-slim AS runtime
+
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# Python 패키지 설치
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt 
-
-# 런타임 스테이지
-FROM python:3.10-slim-bookworm as runtime
-ARG HF_TOKEN
-ARG VLLM_TARGET_DEVICE
-
-# 런타임에 필요한 환경변수 설정
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 
-
-# 필요한 시스템 패키지만 설치
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git && \
-    apt-get install build-essential -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# builder에서 설치된 Python 패키지 복사
-COPY --from=builder /usr/local/lib/python3.10/site-packages/ /usr/local/lib/python3.10/site-packages/
+# builder 패키지 복사 및 의존성 설치
+COPY --from=builder /usr/local/lib/python3.12/site-packages/ /usr/local/lib/python3.12/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-WORKDIR /app
+# 애플리케이션 코드 복사
+WORKDIR  /app
 COPY . .
-
-# 비root 사용자 생성 및 권한 설정
-# RUN useradd -m -s /bin/bash appuser && \
-#     chown -R appuser:appuser /app
-# USER appuser
-
-# Hugging Face 로그인
 
 # 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
