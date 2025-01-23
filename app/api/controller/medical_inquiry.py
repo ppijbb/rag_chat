@@ -108,8 +108,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # assert len(request.text ) > 200, "Text is too short"
                 return StreamingResponse(
                     content=self.service_as_stream.inquiry_stream.remote(
-                        text=request.text, 
-                        stream=True),
+                        text=request.text),
                     media_type="text/event-stream")
                 end = time.time()
                 # ----------------------------------- #
@@ -120,5 +119,3 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 print(traceback.format_exc())
                 self.server_logger.error("error" + e)
                 result += "Error in summarize"
-
-

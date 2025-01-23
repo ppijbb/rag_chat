@@ -6,6 +6,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text: str
+    progress:str = Field(default="chat")
 
     class Config:
         from_attributes = True
