@@ -17,13 +17,18 @@ services:
     #   - /dev/neuron0:/dev/neuron0
     ports:
       - target: 8504       ## 컨테이너 내부 포트
-        published: 8504    ## 호스트OS에서 공개할 포트
+        published: 8508    ## 호스트OS에서 공개할 포트
         protocol: tcp      ## 포트 프로토콜
     environment:
       - FLASK_ENV=development
       - MAX_JOBS=4
       - HF_TOKEN=$HF_TOKEN
+      - NEO4J_URL=$NEO4J_URL
+      - NEO4J_USER=$NEO4J_USER
+      - NEO4J_PASSWORD=$NEO4J_PASSWORD
     runtime: nvidia
+    networks:
+      - qdrant_server
     deploy:
       resources:
         limits:
@@ -45,3 +50,7 @@ services:
       - serve
       - run
       - app.main:build_app
+networks:
+  qdrant_server:
+    external: true
+    driver: bridge

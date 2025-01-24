@@ -36,7 +36,7 @@ class VectorStore:
         )
 
     def _init_client(self):
-        return QdrantClient("http://localhost:6333")  # Qdrant 서버 주소
+        return QdrantClient(host="qdrant_vdb", port=6333)  # Qdrant 서버 주소
         # return QdrantClient(":memory:")  # 메모리에서 실행 (테스트용)
 
     def _get_embeddings(self):

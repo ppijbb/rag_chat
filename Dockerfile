@@ -30,6 +30,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 두 번째 스테이지: 최종 이미지
 FROM python:3.12-slim AS runtime
 
+ARG NEO4J_URL
+ARG NEO4J_USER
+ARG NEO4J_PASSWORD
+ENV NEO4J_URL=${NEO4J_URL}
+ENV NEO4J_USER=${NEO4J_USER}
+ENV NEO4J_PASSWORD=${NEO4J_PASSWORD}
+
 # 작업 디렉토리 설정
 WORKDIR /app
 
