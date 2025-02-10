@@ -8,7 +8,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text: str
-    state: str = Field(default=0, description="0: start, 1: in progress, 2: summarize, 3:treatment, 4: end")
+    state: int = Field(default=0, description="0: start, 1: in progress, 2: summarize, 3:treatment, 4: end")
 
     class Config:
         from_attributes = True
