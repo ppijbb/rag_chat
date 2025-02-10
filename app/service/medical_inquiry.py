@@ -21,6 +21,7 @@ from langchain_community.retrievers import BM25Retriever
 
 from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM
+from app.core.prompts.medical_inquiry import system_prompt, multi_query_prompt, intent_prompt
 from app.util.time_func import format_datetime_with_ampm
 
 
@@ -36,68 +37,22 @@ from app.util.time_func import format_datetime_with_ampm
     placement_group_strategy="STRICT_PACK",
     max_ongoing_requests=10)
 class MedicalInquiryService:
+    # dental_section_list = [
+    #     "혀", "입천장", 
+    #     "좌측 턱", "우측 턱", 
+    #     "상악 좌측치", "하악 좌측치", 
+    #     "상악 전치부", "하악 전치부", 
+    #     "상악 우측치", "하악 우측치"]
     dental_section_list = [
-        "혀", "입천장", 
-        "좌측 턱", "우측 턱", 
-        "상악 좌측치", "하악 좌측치", 
-        "상악 전치부", "하악 전치부", 
-        "상악 우측치", "하악 우측치"]
-    system_prompt: str =f"""
-# Service Informations
-현재 시각: {format_datetime_with_ampm(datetime.datetime.now())}
-
-# Task
-사용자의 Utterance에서 항목들을 정리해야합니다.
-1차적으로 Screening 된 정보와 이전까지 기록된 항목들을 바탕으로 질문과 증상을 정리하세요.
-최종적으로 정리된 표와 주어지는 Context를 보고 질문에 대해 적합한 치료 방법과 치료 시간을 제시하세요.
-
-## Screening 
-- 증상 : (발화 중 드러난 증상 작성. 의학적 용어로 작성.)
-- 지속 기간 : (발화한 기간을 작성. 시간의 형태로 작성.) 
-- 증상 부위 : (증상의 위치가 구체적으로 특정된 경우에 {', '.join(dental_section_list)} 중에서 다중 선택)
-- 증상 강도 : (0:통증/불편 없음 1-2:가벼운 통증/불편 3-4:보통 수준의 통증/불편 5-6:심한 통증/불편 7-8:매우 심한 통증/불편 9-10:극심한 통증/불편)
-- 증상 유발요인 : (발화한 유발 요인, 상황 작성. 보편적으로 증상이 발생할 수 있는 경우를 유추하여 작성.)
-- 하고 싶은 말 : (따로 없는 경우는 작성하지 않음) 
-
-# Tone And Manner
-- 친절하고 이해하기 쉽게 질문하고 답변해야합니다.
-- 항목별로 구체적인 항목을 말할 수 있게 질문해야합니다.
-- 친근한 어조의 발화 형식으로 질문하고 답변해야합니다.
-- 아주 짧은 문장으로 응답해야만 합니다.
-
-# Workflow
-Task를 수행하기 위한 3 단계에 대한 가이드라인입니다.
-
-## Step1. Screening
-- Screening 정보는 추가적으로 작성되어 사용자에게 지속적으로 전달합니다.
-- Screening 정보는 시스템적으로 처리 가능한 수치, 문자의 형태로 고정합니다.
-- 이전 채팅에서 Screening 된 history는 반드시 유지되어야 합니다.
-- Screening에 작성 되지 않는 항목이 있는 경우에만 추가적으로 해당하는 항목에 대한 질문을 수행합니다.(하고싶은 말 제외)
-    - 질문을 할 때는 증상, 지속 기간, 증상 부위, 증상 강도, 증상 유발요인 중 비어있는 항목 1개에 대해서만 1회 생성합니다.
-    - 질문을 할 때는, 항목에 대한 명시를 하지 않고 질문만 생성합니다.
-    - 질문 항목에 대해 사용자가 뚜렷하게 모를 수 있으므로, 모른다는 응답에도 해당 항목은 작성되어야합니다.
-- 만약 Screening 표가 모두 작성된 경우(하고 싶은 말 제외), Step1는 즉시 종료합니다.
-
-## Step2. Chat with Context
-- Step1이후 Context에 기반한 예상 치료 정보를 제공합니다.
-- Screening에서 모든 항목이 채워진 경우에 예상 치료 정보를 제공합니다.
-- Context가 없는 경우, 치료 방법과 치료 시간은 제시하지 말아야합니다.
-- Context의 예시를 참고하여 예상되는 치료 방법과 시간을 제시합니다.
-- 제공받은 Case들에 대해서 복합 치료가 필요한 경우 두 가지 방법 모두 제시하세요.
-- 1회 공지 이후 Step2는 종료됩니다.
-
-## Step3. Reservations and Scheduling
-- Step2 이후에는 예약 및 스케줄링에 대한 정보를 제공합니다.
-- 사용자에게 방문 시간에 대해 질문하고 해당 시간과 날짜를 판단하여 제공합니다.
-- 현재 시각 기준으로 예약 날짜를 판단하며 정확한 날짜의 형식으로 제공합니다. (ex. 2024년 11월 21일 목요일 오전 9시 30분 등...)
-
-# Output
-- (필수)Screening 표
-- (Step1 진행 중)Screening 항목에 대한 질문 질문
-- (Step2 진행 중)예상 치료 방법
-- (Step3 진행 중)사용자가 원하는 방문 시간
-""".strip()
-
+        "혀", "입천장",
+        "왼쪽 턱", "오른쪽 턱",
+        "왼쪽 위", "왼쪽 아래",
+        "위 앞니", "아래 앞니",
+        "오른쪽 위", "오른쪽 아래"]
+    system_prompt: str = system_prompt.format(
+        format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
+        ", ".join(dental_section_list)) # 통증 부위 목록
+   
     def __init__(
         self,
         *args,
@@ -166,15 +121,7 @@ Task를 수행하기 위한 3 단계에 대한 가이드라인입니다.
             # parser_key="lines", # parser_key는 더 이상 사용하지 않음
             include_original=True,
             prompt=PromptTemplate(
-                template=(
-                    "You are an AI language model assistant. Your task is "
-                    "to generate 3 different versions of the given user "
-                    "question to retrieve relevant documents from a vector database. "
-                    "By generating multiple perspectives on the user question, "
-                    "your goal is to help the user overcome some of the limitations "
-                    "of distance-based similarity search. Provide these alternative" 
-                    "questions separated by newlines.\n\n"
-                    "Original question: {question}")
+                template=multi_query_prompt
             )
         )
 
@@ -311,34 +258,7 @@ class IntentChain(Runnable):
     llm = DDG_LLM()
     prompt = ChatPromptTemplate.from_messages([
             # Start of Selection
-            ("system", "# Task\n"
-                       "사용자의 Utterance에서 [증상, 지속 기간, 증상 부위, 증상 강도, 증상 유발요인, 하고 싶은 말]을 정리해내야 합니다.\n\n"
-
-                       "# Note\n"
-                       "- 작성되어야 하는 모든 항목들은 전문적인 단어와 용어로 통일되어야 합니다.\n"
-                       "- 발화에서 판단할 수 없는 항목은 작성하지 않고 빈 칸으로 유지합니다.\n"
-                       "- 증상은 임상에서 구분 가능한 뚜렷한 명칭으로 표기합니다.\n"
-                       "- 뚜렷한 증상 부위의 방향을 명시하거나 증상 부위를 모르는 경우가 아니면 작성되어서는 안됩니다.\n"
-                       "- 사용자가 증상 부위를 특정한 경우에만 증상 부위를 작성할 수 있습니다.\n"
-                       "- 모른다, 모르겠다 등의 답변도 처리되어야 합니다.\n"
-                       "- 증상 강도의 범위는 다음과 같습니다 0:통증/불편 없음, 1-2:가벼운 통증/불편, 3-4:보통 수준의 통증/불편, 5-6:심한 통증/불편, 7-8:매우 심한 통증/불편, 9-10:극심한 통증/불편\n"
-                       "- 하고싶은 말은 추가적인 부분으로 굳이 작성될 필요는 없으며 추가적인 특징이 있으면 추가해주세요.\n"
-                       "- 발화에서 아래 항목을 모두 작성하여 표로 정리해주세요.\n\n"
-
-                       "# Missing Intent\n"
-                       "- 이전에 입력되던 정보는 모두 유지되어야 합니다.\n"
-                       "- Screening 표에 채워지지 않은 항목을 리스트로 만듭니다.(하고 싶은 말 제외)\n\n"
-
-                       "# Output Template\n"
-                       "|항목|내용|\n"
-                       "|---|---|\n"
-                       "|증상|(발화 중 드러난 증상 작성 <ex>치아 파절, 구취, 과잉치, 기저질환 등...</ex>)|\n"
-                       "|지속 기간|(발화한 기간을 작성 <ex>1개월, 7일 이상 등...</ex> )|\n"
-                       "|증상 부위|(증상의 위치가 구체적으로 특정된 경우에 혀, 입천장, 좌측 턱, 우측 턱, 상악 좌측치, 하악 좌측치, 상악 전치부, 하악 전치부, 상악 우측치, 하악 우측치 중에서 다중 선택)|\n"
-                       "|증상 강도|(1~10 중에 작성)|\n"
-                       "|증상 유발요인|(발화한 유발 요인, 상황 작성<ex>음식물 섭취시, 찬바람 등...</ex>)|\n"
-                       "|하고 싶은 말|(따로 없는 경우는 작성하지 않음)|"
-                       ),
+            ("system",  intent_prompt),
             MessagesPlaceholder("history"),
             ("user", "Utterance: {question}")
         ])

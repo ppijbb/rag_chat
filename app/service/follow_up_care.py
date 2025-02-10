@@ -14,6 +14,7 @@ from typing import Dict
 
 from app.core.langchain_module.rag import HybridRAG
 from app.core.langchain_module import DDG_LLM
+from app.core.prompts.follow_up_care import system_prompt
 from app.service.medical_inquiry import MedicalInquiryService
 
 
@@ -25,7 +26,8 @@ from app.service.medical_inquiry import MedicalInquiryService
     },
     max_ongoing_requests=10)
 class FollowupCareService(MedicalInquiryService):
-    
+    system_prompt = system_prompt
+
     def __init__(self,*args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -34,7 +36,6 @@ class FollowupCareService(MedicalInquiryService):
         vectorstore: HybridRAG,
         compressor: CrossEncoderReranker,
         neo4j_chain: GraphCypherQAChain,
-        system_prompt: str,
         memory: ConversationBufferMemory
     ) -> RunnableSerializable:
         
@@ -66,25 +67,31 @@ class FollowupCareService(MedicalInquiryService):
             vectorstore=vectorstore,
             compressor=compressor)
         # 통합 Chain 구성
-        chain = (
+        return (
             RunnableParallel({
-                "vector_context": itemgetter("question") | vector_retriever,
-                "neo4j_context": itemgetter("question") | neo4j_chain,
+                "hospital": itemgetter("hospital"),
+                "treatment": itemgetter("treatment"),
                 "question": itemgetter("question"),
+                "vector_context": itemgetter("question") | vector_retriever,
+                "neo4j_context": RunnablePassthrough.assign(
+                    query=itemgetter("question"),
+                    hospital=itemgetter("hospital"),
+                    treatment=itemgetter("treatment"))
+                    | neo4j_chain,
                 "history": RunnablePassthrough.assign(
                     history=RunnableLambda(memory.load_memory_variables)
-                            | itemgetter(memory.memory_key)
-                    ) 
-                    | itemgetter("history")
-            })
+                            | itemgetter(memory.memory_key)) 
+                    | itemgetter("history")})
             | _combine_context
             | ChatPromptTemplate.from_messages([
-                    SystemMessage(content=system_prompt),
-                    MessagesPlaceholder("history"),
-                    ("human", "Context:\n{context}\n\n{question}"),
+                SystemMessage(content=self.system_prompt),
+                MessagesPlaceholder("history"),
+                ("human", "컨텍스트: \n"
+                          "{context}\n\n"
+                          "방문했던 기관: {hospital}\n"
+                          "진료질환: {treatment}\n"
+                          "문의내용: {question}"),
                 ])
             | self.llm
             | StrOutputParser()
         )
-        
-        return chain

@@ -16,6 +16,7 @@ from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
 
 from app.core.database.neo4j import NEO4J_URL, NEO4J_AUTH
 from app.core.langchain_module.llm import DDG_LLM
+from app.core.prompts.follow_up_care import system_prompt, neo4j_query_prompt, graph_rag_prompt
 
 
 class VectorStore:
@@ -183,52 +184,11 @@ class HybridRAG(VectorStore):
             allow_dangerous_requests=True,
             cypher_prompt=PromptTemplate(
                 input_variables=["schema", "question"],
-                template=(
-                    "Task:Generate Cypher statement to query a graph database.\n"
-                    "Instructions:\n"
-                    "- Use only the provided relationship types and properties in the schema.\n"
-                    "- Do not use any other relationship types or properties that are not provided.\n"
-                    "- Ensure that the Cypher statement retrieves only the specific nodes and relationships relevant to the question, avoiding the selection of all nodes and relationships unless explicitly required.\n\n"
-                    
-                    "Schema:\n"
-                    "{schema}\n\n"
-                    
-                    "Note:\n"
-                    "- Do not include any explanations or apologies in your responses.\n"
-                    "- Do not respond to any questions that might ask anything else than for you to construct a Cypher statement.\n"
-                    "- Do not include any text except the generated Cypher statement.\n\n"
-                    
-                    "The question is:\n"
-                    "{question}"
-                )
+                template=neo4j_query_prompt
             ),
             qa_prompt=PromptTemplate(
                 input_variables=["context", "question"],
-                template=(
-                    "You are an assistant that helps to form nice and human understandable answers. "
-                    "The information part contains the provided information that you must use to construct an answer. "
-                    "The provided information is authoritative, you must never doubt it or try to use your internal knowledge to correct it. "
-                    "The answer must be based solely on the provided information and should be contain every infomations in the context. "
-                    "Make the answer sound as a response to the question. Do not mention that you based the result on the given information.\n\n"
-                    
-                    "Here is an example:\n\n"
-
-                    "Question: Which managers own Neo4j stocks?\n"
-                    "Context:[manager:CTL LLC, manager:JANE STREET GROUP LLC, written_by: NewsJean Magazine]\n"
-                    "Helpful Answer: According to NewsJean Magazine, CTL LLC, JANE STREET GROUP LLC owns Neo4j stocks.\n\n"
-
-                    "Follow this example when generating answers.\n"
-                    "None:\n"
-                    "- If the provided information is empty, say that you don't know the answer.\n"
-                    "- If the user's affiliation differs from the source of the information, explicitly state that the information was provided by a different organization.\n"
-                    "- If the information is not authoritative, state that the information is based on a specific source.\n\n"
-                    
-                    "Information:\n"
-                    "{context}\n\n"
-
-                    "Question: {question}\n"
-                    "Helpful Answer: (the answer must include where did this context 'written by')"
-                    )
+                template=graph_rag_prompt
                 )
             )
         
