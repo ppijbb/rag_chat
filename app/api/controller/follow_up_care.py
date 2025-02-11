@@ -122,5 +122,3 @@ class FollowupCareRouterIngress(BaseIngress):
                 print(traceback.format_exc())
                 self.server_logger.error("error" + e)
                 result += "Error in summarize"
-
-

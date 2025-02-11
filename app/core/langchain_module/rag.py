@@ -42,7 +42,7 @@ class VectorStore:
 
     def _get_embeddings(self):
         return HuggingFaceEmbeddings(
-            model_name="BAAI/bge-m3",
+            model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
             model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
             )
 
@@ -52,7 +52,7 @@ class VectorStore:
     def _get_reranker(self):
         return CrossEncoderReranker(
             model=HuggingFaceCrossEncoder(
-                model_name="BAAI/bge-reranker-v2-m3",
+                model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
                 model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
                 ),
             top_n=2
