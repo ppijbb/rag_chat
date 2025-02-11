@@ -84,5 +84,3 @@ class GaurdService(BaseIngress):
             input_prompt=request_prompt,
             input_text=request_text,
             batch=True)
-    
-   
