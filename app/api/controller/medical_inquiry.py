@@ -64,6 +64,15 @@ class MedicalInquiryRouterIngress(BaseIngress):
 
         @router.post(
             "/chat", 
+            description='''
+            state:\n
+            - 0: 시작
+            - 1: 증상 부위 입력
+            - 2: 진행 중
+            - 3: 요약
+            - 4: 치료
+            - 5: 종료
+            ''',
             response_model=ChatResponse)
         async def medical_inquiry_chat(
             request: ChatRequest,
