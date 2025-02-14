@@ -9,6 +9,12 @@ from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.outputs import GenerationChunk
 
 
+def get_llm():
+    from langchain_openai import ChatOpenAI
+    return ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
+    # return DDG_LLM()    
+
+
 class DDG_LLM(LLM):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

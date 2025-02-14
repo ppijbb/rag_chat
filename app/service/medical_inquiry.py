@@ -5,7 +5,7 @@ import datetime
 
 from ray import serve
 
-from langchain.schema import Document, StrOutputParser
+from langchain.schema import Document
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.memory import ConversationBufferMemory
 from langchain.retrievers.multi_query import LineListOutputParser
@@ -15,14 +15,16 @@ from langchain.retrievers import EnsembleRetriever, ContextualCompressionRetriev
 from langchain_core.prompts.prompt import PromptTemplate
 from langchain_core.messages import SystemMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable, Runnable
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable
 
 from langchain_community.retrievers import BM25Retriever
 
 from app.core.langchain_module.rag import VectorStore
-from app.core.langchain_module.llm import DDG_LLM
-from app.core.prompts.medical_inquiry import system_prompt, multi_query_prompt, intent_prompt
+from app.core.langchain_module.llm import DDG_LLM, get_llm
+from app.core.prompts.medical_inquiry import system_prompt, multi_query_prompt, entity_prompt, timer_prompt
 from app.util.time_func import format_datetime_with_ampm
+from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDispatcher
+from app.model.dto.medical_inquiry import RouterQuery
 
 
 @serve.deployment(
@@ -49,10 +51,7 @@ class MedicalInquiryService:
         "왼쪽 위", "왼쪽 아래",
         "위 앞니", "아래 앞니",
         "오른쪽 위", "오른쪽 아래"]
-    system_prompt: str = system_prompt.format(
-        format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
-        ", ".join(dental_section_list)) # 통증 부위 목록
-   
+    
     def __init__(
         self,
         *args,
@@ -193,93 +192,68 @@ class MedicalInquiryService:
         
         return final_retriever
     
+    def _process_context(self, step_output):
+        result, category = [], []
+        for doc in step_output:
+            source_data = doc.page_content.strip()
+            metadata_text = "\n".join([f"{k}: {v}"
+                                    for k, v in doc.metadata.items()
+                                    if k not in ["_id", "_collection_name"]])
+            if doc.metadata.get("치료") not in category:
+                category.append(doc.metadata.get("치료"))
+                result.append(f"Case {len(category)}\n"
+                            f"유사 사례: {source_data}\n"
+                            f"{metadata_text}")
+        print(377, "\n",result)
+        return {"context":"\n\n".join(result), "raw_context": step_output}
+
     # Initialize RAG chain
     def get_rag_chain(
         self,
         vectorstore: VectorStore, 
-        system_prompt: str, 
         memory: ConversationBufferMemory
         )-> RunnableSerializable:
-
-        def _process_context(step_output):
-            result, category = [], []
-            for doc in step_output:
-                source_data = doc.page_content.strip()
-                metadata_text = "\n".join([f"{k}: {v}"
-                                        for k, v in doc.metadata.items()
-                                        if k not in ["_id", "_collection_name"]])
-                if doc.metadata.get("치료") not in category:
-                    category.append(doc.metadata.get("치료"))
-                    result.append(f"Case {len(category)}\n"
-                                f"유사 사례: {source_data}\n"
-                                f"{metadata_text}")  
-            print(result)
-            return "\n\n".join(result)
         
-        retriever = self.get_adaptive_retriever(
-            vectorstore=vectorstore.vectorstore,
-            compressor=vectorstore.reranker)
-        
-        # Start of Selection
-        chain = (
-            {
-                "chat_history": RunnablePassthrough.assign(
-                    history=RunnableLambda(memory.load_memory_variables) 
-                            | itemgetter(memory.memory_key)
-                        ),
-                "input": RunnablePassthrough()
-            }
-            | IntentChain()
-            | RunnableParallel({
-                "context": itemgetter("result") | retriever | _process_context,
-                "question": itemgetter("question"),
-                "intent": itemgetter("intent"),
-                "history": itemgetter("history")
-                #   RunnablePassthrough.assign(
-                #     history=RunnableLambda(memory.load_memory_variables) 
-                #             | itemgetter(memory.memory_key)
-                #         )
-            })
-            | ChatPromptTemplate.from_messages([
-                    SystemMessage(content=system_prompt),
-                    MessagesPlaceholder("history"),
-                    ("human", "\n"
-                              "Contexts:\n{context}\n\n"
-                              "Screened Intents:\n{intent}\n\n"
-                              "Utterance: {question}"), # HummaMessage 로 넘기는 경우, formatting이 안되는 문제
-                ])
-            | self.llm
-            | StrOutputParser()
+        system_prompt: str = system_prompt.format(
+            format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
+            ", ".join(self.dental_section_list)) # 통증 부위 목록
+        entity_prompt: str = entity_prompt.format(
+            format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
+            )
+        timer_prompt: str = timer_prompt.format(
+            format_datetime_with_ampm(datetime.datetime.now())
         )
-        return chain
-
-
-class IntentChain(Runnable):
-    llm = DDG_LLM()
-    prompt = ChatPromptTemplate.from_messages([
-            # Start of Selection
-            ("system",  intent_prompt),
-            MessagesPlaceholder("history"),
-            ("user", "Utterance: {question}")
-        ])
-
-    def invoke(self, input, config, **kwargs):
-        # 입력 데이터를 처리하는 로직 구현
-        question = input.get("input", "").get("question", "")
-        history = input.get("chat_history", {}).get("history", [])
-        # print(input)
-        
-        chain = self.prompt | self.llm
-        intent = chain.invoke({
-            "history": history,
-            "question": question
-        })
-        return {
-            "result": f"{' '.join([his.content for his in history if his.type=='human'])} {question}", 
-            "intent": intent, 
-            "question": question, 
-            "history": history
-        }
-    # 필요한 경우 batch, stream 등의 메서드도 구현 가능
-    def batch(self, inputs):
-        return [self.invoke(input) for input in inputs]
+        # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
+        return ({"chat_history": RunnablePassthrough.assign(
+                                    history=RunnableLambda(memory.load_memory_variables)
+                                | itemgetter(memory.memory_key)),
+                "input": RunnablePassthrough() }
+                | EntityChain(system_prompt=entity_prompt)
+                | RunnableParallel({ 
+                    # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
+                    "destination": ChatPromptTemplate.from_messages([  
+                                    # 새로운 라우터 체인: route_chain과 기존의 키들을 합쳐서 dispatcher에 전달합니다.
+                                    SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+                                    MessagesPlaceholder("history"),
+                                    ("human", "Screened Intents:\n"
+                                            "{intent}\n"
+                                            "Utterance: {question}") ])
+                                | get_llm().with_structured_output(RouterQuery)
+                                | RunnableLambda(lambda x: x.destination),
+                    "context": itemgetter("result")
+                            | self.get_adaptive_retriever(
+                                    vectorstore=vectorstore.vectorstore,
+                                    compressor=vectorstore.reranker)
+                            | self._process_context,
+                    "question": itemgetter("question"),
+                    "intent": itemgetter("intent"),
+                    "parsed_intent": itemgetter("parsed_intent"),
+                    "history": itemgetter("history") })
+                | RunnablePassthrough.assign(
+                    context=RunnableLambda(lambda x: x["context"]["context"]),
+                    raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
+                    raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]]))
+                | StepDispatcher(
+                    system_prompt=system_prompt, 
+                    timer_prompt=timer_prompt)
+            )
