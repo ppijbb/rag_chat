@@ -42,8 +42,18 @@
 
 1. 필요 패키지 설치
    ```bash
+   # 파이썬 패키지 설치
    pip install poetry
    poetry ilock && poetry install
+
+   # qdrant vector db 설치 및 실행
+   sudo docker pull qdrant/qdrant
+   sudo docker network create qdrant_server
+   sudo docker run -p 6333:6333 -p 6334:6334 \
+    -v "$(pwd)/qdrant_storage:/qdrant/storage:z" \
+    --network qdrant_server \
+    --name qdrant \
+    qdrant/qdrant
    ```
 
 2. FastAPI 서버 실행
@@ -51,7 +61,13 @@
    poetry run serve app.main:build_app
    ```
 
-3. API 문서 확인
+3. Docker로 실행
+   ```bash
+   sudo docker compose build
+   sudo docker compose up
+   ```
+
+4. API 문서 확인
    - Swagger UI: [http://localhost:8504/docs](http://localhost:8504/docs)
    - ReDoc: [http://localhost:8504/redoc](http://localhost:8504/redoc)
 
