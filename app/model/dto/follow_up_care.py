@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class ChatRequest(BaseModel):
     uid: str = Field(...)
     state: int = Field(..., description="0: 시작, 1: 증상 부위 입력, 2: 진행 중, 3: 요약, 4: 치료, 5: 종료")
+    hospital: str = Field(..., description="방문 병원명")
+    treatment: str = Field(..., description="방문 병원에서 받은 치료명")
     text: str = Field(...)
     lang: Optional[str] = Field(default="ko", description="ko: 한국어, en: 영어")
 

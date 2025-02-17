@@ -2,6 +2,7 @@ from ray import serve
 
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable
 from langchain_core.messages import SystemMessage
+from langchain_core.chat_history import InMemoryChatMessageHistory
 
 from langchain_neo4j import GraphCypherQAChain
 from langchain.memory import ConversationBufferMemory
@@ -30,11 +31,55 @@ class FollowupCareService(MedicalInquiryService):
 
     def __init__(self,*args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
+    async def inquiry_chat(
+        self,
+        hospital:str,
+        treatment:str,
+        text:str,
+        memory_key: str = "history"
+    ):
+        self.logger.warning(f"input : {text}")
+        rag_chain = self.get_rag_chain(
+            vectorstore=self.vectorstore,
+            memory=ConversationBufferMemory(
+                chat_memory=InMemoryChatMessageHistory(
+                    messages=self._get_user_history(memory_key)),
+                return_messages=True,
+                memory_key=memory_key)
+            )
+        result = await rag_chain.ainvoke({
+            "hospital": hospital.strip(),
+            "treatment": treatment.strip(), 
+            "question": text.strip()
+            })
+        self._add_user_history(memory_key, [("user", text), ("ai", result)])
+        return result
+
+    async def inquiry_stream(
+        self,
+        hospital:str,
+        treatment:str,
+        text:str,
+        memory_key: str = "history"
+    ):
+        rag_chain = self.get_rag_chain(
+            vectorstore=self.vectorstore,
+            memory=ConversationBufferMemory(
+                chat_memory=InMemoryChatMessageHistory(
+                    messages=self._get_user_history(memory_key)),
+                return_messages=True,
+                memory_key=memory_key)
+            )
+        return rag_chain.astream({
+            "hospital": hospital.strip(),
+            "treatment": treatment.strip(), 
+            "question": text.strip()
+            })
+
     def get_rag_chain(
         self,
         vectorstore: HybridRAG,
-        compressor: CrossEncoderReranker,
         neo4j_chain: GraphCypherQAChain,
         memory: ConversationBufferMemory
     ) -> RunnableSerializable:
@@ -65,7 +110,7 @@ class FollowupCareService(MedicalInquiryService):
         
         vector_retriever = self.get_adaptive_retriever(
             vectorstore=vectorstore,
-            compressor=compressor)
+            compressor=vectorstore.reranker)
         # 통합 Chain 구성
         return (
             RunnableParallel({

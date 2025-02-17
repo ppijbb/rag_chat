@@ -27,7 +27,7 @@ from app.util.time_func import format_datetime_with_ampm
 from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDispatcher
 from app.model.dto.medical_inquiry import RouterQuery
 from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT, TIMER_PROMPT, MULTI_QUERY_PROMPT
-
+from app.service._base import BaseService
 
 @serve.deployment(
     placement_group_bundles=[{
@@ -40,7 +40,7 @@ from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT, TIMER
     },
     placement_group_strategy="STRICT_PACK",
     max_ongoing_requests=10)
-class MedicalInquiryService:
+class MedicalInquiryService(BaseService):
     # dental_section_list = [
     #     "혀", "입천장", 
     #     "좌측 턱", "우측 턱", 
@@ -64,31 +64,13 @@ class MedicalInquiryService:
         self.vectorstore = VectorStore(collection_name=self.collection_name)
         self._memory_path = "qdrant_storage"
         self.logger = get_logger()
-
-    def _get_user_history(self, memory_key:str):
-        with shelve.open(f'{self._memory_path}/{memory_key}') as db:
-            history = db.get("history", [])
-            self.logger.warning(db)
-            self.logger.warning(history)
-        return history
-    
-    def _add_user_history(self, memory_key:str, data: Any):
-        with shelve.open(f'{self._memory_path}/{memory_key}') as db:
-            history = db.get("history", [])
-            if isinstance(data, (tuple, list)):
-                for d in data:
-                    self.logger.warning(d)
-                    history.append(d)
-            else:
-                history.append(data)
-        self.logger.warning(history)
         
     async def inquiry_chat(
         self,
         text:str,
         memory_key: str = "history"
     ):
-        self.logger.warning(text)
+        self.logger.warning(f"input : {text}")
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
