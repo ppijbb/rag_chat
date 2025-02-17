@@ -21,10 +21,10 @@ from langchain_community.retrievers import BM25Retriever
 
 from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM, get_llm
-from app.core.prompts.medical_inquiry import system_prompt, multi_query_prompt, entity_prompt, timer_prompt
 from app.util.time_func import format_datetime_with_ampm
 from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDispatcher
 from app.model.dto.medical_inquiry import RouterQuery
+from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT, TIMER_PROMPT, MULTI_QUERY_PROMPT
 
 
 @serve.deployment(
@@ -67,7 +67,6 @@ class MedicalInquiryService:
     ):
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
-            system_prompt=self.system_prompt,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(),
                 return_messages=True,
@@ -82,7 +81,6 @@ class MedicalInquiryService:
     ):
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
-            system_prompt=self.system_prompt,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(),
                 return_messages=True,
@@ -120,7 +118,7 @@ class MedicalInquiryService:
             # parser_key="lines", # parser_key는 더 이상 사용하지 않음
             include_original=True,
             prompt=PromptTemplate(
-                template=multi_query_prompt
+                template=MULTI_QUERY_PROMPT
             )
         )
 
@@ -204,7 +202,6 @@ class MedicalInquiryService:
                 result.append(f"Case {len(category)}\n"
                             f"유사 사례: {source_data}\n"
                             f"{metadata_text}")
-        print(377, "\n",result)
         return {"context":"\n\n".join(result), "raw_context": step_output}
 
     # Initialize RAG chain
@@ -213,16 +210,16 @@ class MedicalInquiryService:
         vectorstore: VectorStore, 
         memory: ConversationBufferMemory
         )-> RunnableSerializable:
-        
-        system_prompt: str = system_prompt.format(
+
+        system_prompt: str = SYSTEM_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
             ", ".join(self.dental_section_list)) # 통증 부위 목록
-        entity_prompt: str = entity_prompt.format(
+        entity_prompt: str = ENTITY_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
             )
-        timer_prompt: str = timer_prompt.format(
+        timer_prompt: str = TIMER_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now())
-        )
+            )
         # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
         return ({"chat_history": RunnablePassthrough.assign(
                                     history=RunnableLambda(memory.load_memory_variables)
@@ -236,14 +233,14 @@ class MedicalInquiryService:
                                     SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
                                     MessagesPlaceholder("history"),
                                     ("human", "Screened Intents:\n"
-                                            "{intent}\n"
-                                            "Utterance: {question}") ])
+                                              "{intent}\n"
+                                              "Utterance: {question}") ])
                                 | get_llm().with_structured_output(RouterQuery)
                                 | RunnableLambda(lambda x: x.destination),
                     "context": itemgetter("result")
                             | self.get_adaptive_retriever(
-                                    vectorstore=vectorstore.vectorstore,
-                                    compressor=vectorstore.reranker)
+                                vectorstore=vectorstore.vectorstore,
+                                compressor=vectorstore.reranker)
                             | self._process_context,
                     "question": itemgetter("question"),
                     "intent": itemgetter("intent"),

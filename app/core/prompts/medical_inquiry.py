@@ -1,4 +1,4 @@
-system_prompt:str = """
+SYSTEM_PROMPT:str = """
 # Service Informations
 현재 시각: {}
 
@@ -48,9 +48,9 @@ system_prompt:str = """
     - <treatment></treatment> 태그로 묶음
 """.strip()
 
-entity_prompt:str = """
+ENTITY_PROMPT:str = """
 # Service Informations
-현재 시각: {format_datetime_with_ampm(datetime.datetime.now())}
+현재 시각: {}
 
 # Task
 사용자의 Utterance에서 [증상, 지속 기간, 증상 부위, 증상 강도, 증상 유발요인, 하고 싶은 말]을 정리해내야 합니다.
@@ -84,7 +84,7 @@ entity_prompt:str = """
 </screening>"
 """.strip()
 
-timer_prompt:str = """
+TIMER_PROMPT:str = """
 # Service Informations
 현재 시각: {}
 
@@ -125,7 +125,7 @@ timer_prompt:str = """
 위 조건들을 모두 고려하여 입력된 치료 항목의 총 치료 시간을 계산해 주세요.
 """.strip()
 
-multi_query_prompt:str = """
+MULTI_QUERY_PROMPT:str = """
 You are an AI language model assistant. Your task is to generate 3 different versions of the given user question to retrieve relevant documents from a vector database. By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search. Provide these alternative questions separated by newlines.
 
 Original question: {question}

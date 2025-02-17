@@ -86,7 +86,8 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # assert len(request.text ) > 200, "Text is too short"
                 result += await self.service.inquiry_chat.remote(
                     # self=self._get_class(),
-                    text=request.text)
+                    text=request.text,
+                    memory_key=request.uid)
                 # result = text_postprocess(result)
                 # print(result)
                 end = time.time()
@@ -126,7 +127,8 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # assert len(request.text ) > 200, "Text is too short"
                 return StreamingResponse(
                     content=self.service_as_stream.inquiry_stream.remote(
-                        text=request.text),
+                        text=request.text,
+                        memory_key=request.uid),
                     media_type="text/event-stream")
                 end = time.time()
                 # ----------------------------------- #

@@ -1,23 +1,56 @@
 from typing import List, Dict
-
+import re
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, Runnable
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 from langchain.schema import StrOutputParser
-from app.core.prompts.medical_inquiry import system_prompt, multi_query_prompt, entity_prompt
 from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.model.dto.medical_inquiry import TreatmentQuery
 
 
 class EntityChain(Runnable):
-    llm = DDG_LLM()
-    prompt = ChatPromptTemplate.from_messages([
-            # Start of Selection
-            ("system",  entity_prompt),
-            MessagesPlaceholder("history"),
-            ("user", "Utterance: {question}")
-        ])
+    def __init__(self, system_prompt: str):
+        self.llm = get_llm()
+        self.prompt = ChatPromptTemplate.from_messages([
+                ("system", system_prompt),
+                MessagesPlaceholder("history"),
+                ("user", "Utterance: {question}")
+            ])
 
+    def intent_parser(self, text)->dict:
+        result = {
+            "증상": None, 
+            "증상 강도": None, 
+            "증상 부위": None, 
+            "증상 기간": None, 
+            "증상 유발요인": None, 
+            "하고싶은 말": None
+        }
+        tag_pattern = re.compile(r'<screening>(.*?)</screening>', re.DOTALL)
+        match = tag_pattern.search(text)
+        if not match:
+            return result
+
+        content = match.group(1).strip()
+
+        # 각 줄별로 분리합니다.
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        if len(lines) < 3:
+            # 적어도 헤더, 구분선, 그리고 하나 이상의 데이터 행이 필요합니다.
+            return result
+
+        # 첫 두 줄(헤더와 구분선)을 건너뜁니다.
+        data_lines = lines[2:]
+
+        for line in data_lines:
+            # 파이프 문자 '|'로 시작 및 끝나는 경우 제거한 후 분할합니다.
+            columns = [col.strip() for col in line.strip("|").split("|")]
+            if len(columns) >= 2:
+                key, value = columns[0], columns[1]
+                result[key] = value
+
+        return result
+    
     def invoke(self, input, config, **kwargs):
         # 입력 데이터를 처리하는 로직 구현
         question = input.get("input", "").get("question", "")
@@ -29,12 +62,16 @@ class EntityChain(Runnable):
             "history": history,
             "question": question
         })
+        print(310, "\n", intent.content)
+        
         return {
             "result": f"{' '.join([his.content for his in history if his.type=='human'])} {question}", 
-            "intent": intent, 
+            "intent": intent,
             "question": question, 
-            "history": history
+            "history": history,
+            "parsed_intent": self.intent_parser(intent.content)
         }
+
     # 필요한 경우 batch, stream 등의 메서드도 구현 가능
     def batch(self, inputs):
         return [self.invoke(input) for input in inputs]
@@ -44,10 +81,10 @@ class TimerChain(Runnable):
     def __init__(self, system_prompt: str):
         self.llm = get_llm()
         self.prompt = ChatPromptTemplate.from_messages([
-                ("system", system_prompt),
-                MessagesPlaceholder("history"),
-                ("user", "Utterance: {question}")
-            ])
+            ("system", system_prompt),
+            MessagesPlaceholder("history"),
+            ("user", "Utterance: {question}")
+        ])
 
     def treatment_rule(
         self, 
@@ -128,7 +165,6 @@ class TimerChain(Runnable):
                     "diagnosis": treat.metadata["증상"]
                     }
         treatment_rule = self.treatment_rule(treatments=treatment_data, pain=intents["증상 강도"])
-        print(treatment_rule)
         treatment_message = ", ".join(treatment_rule["treatments"])
         treatment_time_message = f'{"+".join(f"{i}분" for i in treatment_rule["cal_info"])}={treatment_rule["total"]}분'
         input.update({
