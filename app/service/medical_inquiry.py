@@ -1,7 +1,8 @@
 from abc import ABC
 from operator import itemgetter
-from typing import List
+from typing import List,  Any
 import datetime
+import shelve
 
 from ray import serve
 
@@ -19,6 +20,7 @@ from langchain_core.runnables import RunnableParallel, RunnablePassthrough, Runn
 
 from langchain_community.retrievers import BM25Retriever
 
+from app.core.logging import get_logger
 from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.util.time_func import format_datetime_with_ampm
@@ -58,21 +60,46 @@ class MedicalInquiryService:
         **kwargs
     ):
         self.llm = kwargs.get("llm", DDG_LLM())
-        self.vectorstore = VectorStore()
+        self.collection_name = kwargs.get("collection_name", "pre_screening")
+        self.vectorstore = VectorStore(collection_name=self.collection_name)
+        self._memory_path = "qdrant_storage"
+        self.logger = get_logger()
 
+    def _get_user_history(self, memory_key:str):
+        with shelve.open(f'{self._memory_path}/{memory_key}') as db:
+            history = db.get("history", [])
+            self.logger.warning(db)
+            self.logger.warning(history)
+        return history
+    
+    def _add_user_history(self, memory_key:str, data: Any):
+        with shelve.open(f'{self._memory_path}/{memory_key}') as db:
+            history = db.get("history", [])
+            if isinstance(data, (tuple, list)):
+                for d in data:
+                    self.logger.warning(d)
+                    history.append(d)
+            else:
+                history.append(data)
+        self.logger.warning(history)
+        
     async def inquiry_chat(
         self,
         text:str,
         memory_key: str = "history"
     ):
+        self.logger.warning(text)
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
-                chat_memory=InMemoryChatMessageHistory(),
+                chat_memory=InMemoryChatMessageHistory(
+                    messages=self._get_user_history(memory_key)),
                 return_messages=True,
                 memory_key=memory_key)
             )
-        return await rag_chain.ainvoke({"input": {"question": text}})
+        result = await rag_chain.ainvoke({"input": {"question": text}})
+        self._add_user_history(memory_key, [("user", text), ("ai", result)])
+        return result
 
     async def inquiry_stream(
         self,
@@ -82,7 +109,8 @@ class MedicalInquiryService:
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
-                chat_memory=InMemoryChatMessageHistory(),
+                chat_memory=InMemoryChatMessageHistory(
+                    messages=self._get_user_history(memory_key)),
                 return_messages=True,
                 memory_key=memory_key)
             )

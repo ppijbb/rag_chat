@@ -112,6 +112,7 @@ def build_app(
         ).bind(
             service=MedicalInquiryService.options(
                 ).bind(
-                    llm=app.state.global_llm
+                    llm=app.state.global_llm,
+                    collection_name="pre_screening"
                 )
             )
