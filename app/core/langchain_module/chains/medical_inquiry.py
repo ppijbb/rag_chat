@@ -1,9 +1,12 @@
 from typing import List, Dict
 import re
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda, Runnable
+from operator import itemgetter
+
+from langchain_core.runnables import RunnablePassthrough, RunnableLambda, Runnable, RunnableParallel
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 from langchain.schema import StrOutputParser
+
 from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.model.dto.medical_inquiry import TreatmentQuery
 
@@ -12,19 +15,19 @@ class EntityChain(Runnable):
     def __init__(self, system_prompt: str):
         self.llm = get_llm()
         self.prompt = ChatPromptTemplate.from_messages([
-                ("system", system_prompt),
-                MessagesPlaceholder("history"),
-                ("user", "Utterance: {question}")
-            ])
+            ("system", system_prompt),
+            MessagesPlaceholder("history"),
+            ("user", "Utterance: {question}")
+        ])
 
     def intent_parser(self, text)->dict:
         result = {
             "증상": None, 
             "증상 강도": None, 
             "증상 부위": None, 
-            "증상 기간": None, 
+            "지속 기간": None, 
             "증상 유발요인": None, 
-            "하고싶은 말": None
+            "하고 싶은 말": None
         }
         tag_pattern = re.compile(r'<screening>(.*?)</screening>', re.DOTALL)
         match = tag_pattern.search(text)
@@ -55,21 +58,20 @@ class EntityChain(Runnable):
         # 입력 데이터를 처리하는 로직 구현
         question = input.get("input", "").get("question", "")
         history = input.get("chat_history", {}).get("history", [])
-        # print(input)
         
         chain = self.prompt | self.llm
         intent = chain.invoke({
             "history": history,
             "question": question
         })
-        print(310, "\n", intent.content)
         
         return {
             "result": f"{' '.join([his.content for his in history if his.type=='human'])} {question}", 
             "intent": intent,
             "question": question, 
             "history": history,
-            "parsed_intent": self.intent_parser(intent.content)
+            "parsed_intent": self.intent_parser(intent.content),
+            "language": input.get("input", {}).get("language", "ko")
         }
 
     # 필요한 경우 batch, stream 등의 메서드도 구현 가능
@@ -173,7 +175,7 @@ class TimerChain(Runnable):
                        "*위 결과는 증상에 따라 예상되는 진료 및 요약이며 의학적인 진단이 아닙니다. "
                        "요약 시 누락이나 오역이 있을 수 있으며, "
                        "실제 치료 내용과 시간은 방사선 촬영 및 의료진의 진료에 따라 달라질 수 있습니다."})
-        print(input["context"])
+        # print(input["context"])
         return {
             **input
         }
@@ -194,61 +196,78 @@ class StepDispatcher(Runnable):
 
         # step1: 문진 진행
         self.chain_step1 = (
-            ChatPromptTemplate.from_messages([
-                SystemMessage(content=self.system_prompt),
-                MessagesPlaceholder("history"),
-                ("human", "Contexts:\n{context}\n\n"
-                          "Screened Intents:\n{intent}\n"
-                          "Utterance: {question}\n"
-                          "Processing State: step1")
-            ])
-            | self.llm
-            | StrOutputParser()
+            RunnableParallel({
+                "text": ChatPromptTemplate.from_messages([
+                             SystemMessage(content=self.system_prompt),
+                             MessagesPlaceholder("history"),
+                             ("human", "Contexts:\n{context}\n\n"
+                                     "Screened Intents:\n{intent}\n"
+                                     "Utterance: {question}\n"
+                                     "Output Language: {language}\n"
+                                     "Processing State: step1")
+                        ])
+                        | self.llm
+                        | StrOutputParser(),
+                "screening": itemgetter("intent")
+                             | RunnableLambda(lambda x: x.content)
+            })
         )
 
         # step2: 치료 방법 제시
         self.chain_step2 = (
-            RunnablePassthrough.assign(
-                answers=ChatPromptTemplate.from_messages([  
-                        # 필요한 치료 방법만 선택하는 프롬프트
-                        SystemMessage(
-                            content="Contexts를 참고하여 현재 가장 필요한 치료 방법을 선택하세요. "
-                                    "서로 다른 치료 방법이 적용되야 하는 경우에만 다중 선택 가능합니다. "
-                                    "같은 치료 방법이라면 더 적절한 것 하나만 선택해야합니다."),
-                        MessagesPlaceholder("history"),
-                        ("human", "Contexts:\n{context}\n\n"
-                                  "Screened Intents:\n{intent}\n"
-                                  "Utterance: {question}\n"
-                                  "Processing State: step2\n"
-                                  "---\n"
-                                  "answers:[{raw_treatment}]") ])
-                        | get_llm().with_structured_output(TreatmentQuery)
-                        | RunnableLambda(lambda x: x.answers))
-            | TimerChain(system_prompt=timer_prompt) # 시간 계산 chain
-            | ChatPromptTemplate.from_messages([
-                SystemMessage(content=self.system_prompt),
-                MessagesPlaceholder("history"),
-                ("human", "Contexts:\n{context}\n\n"
-                          "Screened Intents:\n{intent}\n"
-                          "Utterance: {question}\n"
-                          "Processing State: step2\n\n")
-            ])
-            | self.llm
-            | StrOutputParser()
+            RunnableParallel({
+                "text": RunnablePassthrough.assign(
+                            answers=ChatPromptTemplate.from_messages([  
+                                    # 필요한 치료 방법만 선택하는 프롬프트
+                                    SystemMessage(
+                                        content="Contexts를 참고하여 현재 가장 필요한 치료 방법을 선택하세요. "
+                                                "서로 다른 치료 방법이 적용되야 하는 경우에만 다중 선택 가능합니다. "
+                                                "같은 치료 방법이라면 더 적절한 것 하나만 선택해야합니다."),
+                                    MessagesPlaceholder("history"),
+                                    ("human", "Contexts:\n{context}\n\n"
+                                            "Screened Intents:\n{intent}\n"
+                                            "Utterance: {question}\n"
+                                            "Processing State: step2\n"
+                                            "---\n"
+                                            "answers:[{raw_treatment}]") ])
+                                    | get_llm().with_structured_output(TreatmentQuery)
+                                    | RunnableLambda(lambda x: x.answers))
+                        | TimerChain(system_prompt=timer_prompt) # 시간 계산 chain
+                        | ChatPromptTemplate.from_messages([
+                            SystemMessage(content=self.system_prompt),
+                            MessagesPlaceholder("history"),
+                            ("human", "Contexts:\n{context}\n\n"
+                                    "Screened Intents:\n{intent}\n"
+                                    "Utterance: {question}\n"
+                                    "Output Language: {language}\n"
+                                    "Processing State: step2\n\n")
+                        ])
+                        | self.llm
+                        | StrOutputParser(),
+                "screening": itemgetter("intent")
+                             | RunnableLambda(lambda x: x.content),
+                "treatment": itemgetter("raw_treatment")
+            })
         )
 
         # step3: 예상 시간 계산
         self.chain_step3 = (
-            ChatPromptTemplate.from_messages([
-                SystemMessage(content=self.timer_prompt),
-                MessagesPlaceholder("history"),
-                ("human", "Contexts:\n{context}\n\n"
-                          "Screened Intents:\n{intent}\n"
-                          "Utterance: {question}\n"
-                          "Processing State: step2")
-            ])
-            | self.llm
-            | StrOutputParser()
+            RunnableParallel({
+                "text": ChatPromptTemplate.from_messages([
+                             SystemMessage(content=self.system_prompt),
+                             MessagesPlaceholder("history"),
+                             ("human", "Contexts:\n{context}\n\n"
+                                     "Screened Intents:\n{intent}\n"
+                                     "Utterance: {question}\n"
+                                     "Output Language: {language}\n"
+                                     "Processing State: step2")
+                        ])
+                        | self.llm
+                        | StrOutputParser(),
+                "screening": itemgetter("intent")
+                             | RunnableLambda(lambda x: x.content),
+                "treatment": itemgetter("raw_treatment")
+            })
         )
 
     def invoke(self, input: dict, config: dict = None, **kwargs):

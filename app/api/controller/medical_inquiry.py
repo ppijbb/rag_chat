@@ -65,7 +65,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
         @router.post(
             "/chat", 
             description='''
-            state:\n
+            **state 값 정의**\n
             - 0: 시작
             - 1: 증상 부위 입력
             - 2: 진행 중
@@ -77,36 +77,39 @@ class MedicalInquiryRouterIngress(BaseIngress):
         async def medical_inquiry_chat(
             request: ChatRequest,
         ) -> ChatResponse:
-            result = ""
+            result = {"text": "", "screening": None, "treatment": None}
             # Generate predicted tokens
             try:
                 # ----------------------------------- #
                 st = time.time()
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
-                result += await self.service.inquiry_chat.remote(
+                chain_result = await self.service.inquiry_chat.remote(
                     # self=self._get_class(),
                     text=request.text,
+                    language=request.lang,
+                    state=request.state,
                     memory_key=request.uid)
-                # result = text_postprocess(result)
-                # print(result)
+                result.update(chain_result)
+                self.server_logger.info(f"\nRequest: {request.text}")
+                self.server_logger.info(f"\nResult: {result}")
                 end = time.time()
                 # ----------------------------------- #
                 assert len(result) > 0, "Generation failed"
                 print(f"Time: {end - st}")
             except AssertionError as e:
-                result += e
+                self.server_logger.error("validation error" + e)
+                result["text"] = e
             except Exception as e:
-                print(traceback.format_exc())
-                self.server_logger.error("error" + e)
-                result += "Generation failed"
+                self.server_logger.error("unkwon error" + e)
+                result["text"] = "Generation failed"
             finally:
-                return ChatResponse(text=result)
+                return ChatResponse(**result)
 
         @router.post(
             "/chat/stream",
             description='''
-            state:\n
+            **state 값 정의**\n
             - 0: 시작
             - 1: 증상 부위 입력
             - 2: 진행 중
@@ -127,15 +130,18 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # assert len(request.text ) > 200, "Text is too short"
                 return StreamingResponse(
                     content=self.service_as_stream.inquiry_stream.remote(
+                        # self=self._get_class(),
                         text=request.text,
+                        language=request.lang,
+                        state=request.state,
                         memory_key=request.uid),
                     media_type="text/event-stream")
                 end = time.time()
                 # ----------------------------------- #
                 print(f"Time: {end - st}")
             except AssertionError as e:
+                self.server_logger.error("validation error" + e)
                 result += e
             except Exception as e:
-                print(traceback.format_exc())
-                self.server_logger.error("error" + e)
-                result += "Error in summarize"
+                self.server_logger.error("unkwon error" + e)
+                result += "Generation failed"

@@ -1,6 +1,6 @@
 from abc import ABC
 from operator import itemgetter
-from typing import List,  Any
+from typing import List, Any, Dict, AsyncIterator
 import datetime
 import shelve
 
@@ -68,47 +68,72 @@ class MedicalInquiryService(BaseService):
     async def inquiry_chat(
         self,
         text:str,
-        memory_key: str = "history"
-    ):
-        self.logger.warning(f"input : {text}")
+        language:str,
+        state:int=0,
+        memory_key:str="history"
+    ) -> Dict[str, str]:
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
-                    messages=self._get_user_history(memory_key)),
-                return_messages=True,
-                memory_key=memory_key)
+                    messages=self._get_user_history(
+                        memory_key=memory_key,
+                        state=state)),
+                memory_key=memory_key,
+                return_messages=True)
             )
-        result = await rag_chain.ainvoke({"input": {"question": text}})
-        self._add_user_history(memory_key, [HumanMessage(content=text), AIMessage(content=result.strip())])
-        return result.strip()
+        result = await rag_chain.ainvoke({
+                "question": text,
+                "language": language
+            })
+        await self._add_user_history( # 채팅 기록 저장
+            memory_key=memory_key, 
+            data=[
+                HumanMessage(content=text), 
+                AIMessage(content=result["text"].strip())
+            ])
+        return result
 
     async def inquiry_stream(
         self,
         text:str,
-        memory_key: str = "history"
-    ):
+        language:str,
+        state:int=0,
+        memory_key:str="history"
+    ) -> AsyncIterator:
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
-                    messages=self._get_user_history(memory_key)),
+                    messages=self._get_user_history(
+                        memory_key=memory_key,
+                        state=state)),
                 return_messages=True,
                 memory_key=memory_key)
             )
-        return rag_chain.astream({"input": {"question": text}})
+        return rag_chain.astream({
+                "question": text,
+                "language": language
+            })
 
     # Adaptive RAG components
-    def generate_queries(self, question: str) -> List[str]:
+    def generate_queries(
+        self, 
+        question: str
+    ) -> List[str]:
         prompt = ChatPromptTemplate.from_messages([
                 # Start of Selection
-                ("system", "제공된 질문에 대해 관련 컨텍스트를 검색하기 위해 3가지 다른 버전의 질문을 생성하세요. 다양하게 만드세요."),
+                ("system", "제공된 질문에 대해 관련 컨텍스트를 검색하기 위해 3가지 다른 버전의 질문을 생성하세요. 다양하게 만드세요. 문장의 행별로 구분 되어야합니다."),
                 ("user", "{question}")
             ])
         chain = prompt | self.llm | LineListOutputParser()
         return chain.invoke({"question": question})
 
-    def get_adaptive_retriever(self, vectorstore: VectorStore, compressor: CrossEncoderReranker):
+    def get_adaptive_retriever(
+        self, 
+        vectorstore: VectorStore, 
+        compressor: CrossEncoderReranker
+    ) -> ContextualCompressionRetriever:
         # Base vector retriever
         k = 5
         vector_retriever = vectorstore.as_retriever(
@@ -200,7 +225,10 @@ class MedicalInquiryService(BaseService):
         
         return final_retriever
     
-    def _process_context(self, step_output):
+    def _process_context(
+        self, 
+        step_output
+    ) -> Dict[str, str]:
         result, category = [], []
         for doc in step_output:
             source_data = doc.page_content.strip()
@@ -219,7 +247,7 @@ class MedicalInquiryService(BaseService):
         self,
         vectorstore: VectorStore, 
         memory: ConversationBufferMemory
-        )-> RunnableSerializable:
+    )-> RunnableSerializable:
 
         system_prompt: str = SYSTEM_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
@@ -231,10 +259,8 @@ class MedicalInquiryService(BaseService):
             format_datetime_with_ampm(datetime.datetime.now())
             )
         # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
-        return ({"chat_history": RunnablePassthrough.assign(
-                                    history=RunnableLambda(memory.load_memory_variables)
-                                | itemgetter(memory.memory_key)),
-                "input": RunnablePassthrough() }
+        return ({"chat_history": RunnableLambda(memory.load_memory_variables),
+                 "input": RunnablePassthrough() }
                 | EntityChain(system_prompt=entity_prompt)
                 | RunnableParallel({ 
                     # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
@@ -245,17 +271,18 @@ class MedicalInquiryService(BaseService):
                                     ("human", "Screened Intents:\n"
                                               "{intent}\n"
                                               "Utterance: {question}") ])
-                                | get_llm().with_structured_output(RouterQuery)
-                                | RunnableLambda(lambda x: x.destination),
+                                   | get_llm().with_structured_output(RouterQuery)
+                                   | RunnableLambda(lambda x: x.destination),
                     "context": itemgetter("result")
-                            | self.get_adaptive_retriever(
-                                vectorstore=vectorstore.vectorstore,
-                                compressor=vectorstore.reranker)
-                            | self._process_context,
+                               | self.get_adaptive_retriever(
+                                   vectorstore=vectorstore.vectorstore,
+                                   compressor=vectorstore.reranker)
+                               | self._process_context,
                     "question": itemgetter("question"),
                     "intent": itemgetter("intent"),
                     "parsed_intent": itemgetter("parsed_intent"),
-                    "history": itemgetter("history") })
+                    "history": itemgetter("history"),
+                    "language": itemgetter("language")})
                 | RunnablePassthrough.assign(
                     context=RunnableLambda(lambda x: x["context"]["context"]),
                     raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
