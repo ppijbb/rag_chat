@@ -56,9 +56,8 @@ class EntityChain(Runnable):
     
     def invoke(self, input, config, **kwargs):
         # 입력 데이터를 처리하는 로직 구현
-        question = input.get("input", "").get("question", "")
-        history = input.get("chat_history", {}).get("history", [])
-        
+        question = input.get("question", "")
+        history = input.get("chat_history", [])
         chain = self.prompt | self.llm
         intent = chain.invoke({
             "history": history,
@@ -71,7 +70,7 @@ class EntityChain(Runnable):
             "question": question, 
             "history": history,
             "parsed_intent": self.intent_parser(intent.content),
-            "language": input.get("input", {}).get("language", "ko")
+            "language": input.get("language", "ko")
         }
 
     # 필요한 경우 batch, stream 등의 메서드도 구현 가능
@@ -201,10 +200,10 @@ class StepDispatcher(Runnable):
                              SystemMessage(content=self.system_prompt),
                              MessagesPlaceholder("history"),
                              ("human", "Contexts:\n{context}\n\n"
-                                     "Screened Intents:\n{intent}\n"
-                                     "Utterance: {question}\n"
-                                     "Output Language: {language}\n"
-                                     "Processing State: step1")
+                                       "Screened Intents:\n{intent}\n"
+                                       "Utterance: {question}\n"
+                                       "Output Language: {language}\n"
+                                       "Processing State: step1")
                         ])
                         | self.llm
                         | StrOutputParser(),
@@ -225,11 +224,11 @@ class StepDispatcher(Runnable):
                                                 "같은 치료 방법이라면 더 적절한 것 하나만 선택해야합니다."),
                                     MessagesPlaceholder("history"),
                                     ("human", "Contexts:\n{context}\n\n"
-                                            "Screened Intents:\n{intent}\n"
-                                            "Utterance: {question}\n"
-                                            "Processing State: step2\n"
-                                            "---\n"
-                                            "answers:[{raw_treatment}]") ])
+                                              "Screened Intents:\n{intent}\n"
+                                              "Utterance: {question}\n"
+                                              "Processing State: step2\n"
+                                              "---\n"
+                                              "answers:[{raw_treatment}]") ])
                                     | get_llm().with_structured_output(TreatmentQuery)
                                     | RunnableLambda(lambda x: x.answers))
                         | TimerChain(system_prompt=timer_prompt) # 시간 계산 chain
@@ -237,10 +236,10 @@ class StepDispatcher(Runnable):
                             SystemMessage(content=self.system_prompt),
                             MessagesPlaceholder("history"),
                             ("human", "Contexts:\n{context}\n\n"
-                                    "Screened Intents:\n{intent}\n"
-                                    "Utterance: {question}\n"
-                                    "Output Language: {language}\n"
-                                    "Processing State: step2\n\n")
+                                      "Screened Intents:\n{intent}\n"
+                                      "Utterance: {question}\n"
+                                      "Output Language: {language}\n"
+                                      "Processing State: step2\n\n")
                         ])
                         | self.llm
                         | StrOutputParser(),
@@ -257,10 +256,10 @@ class StepDispatcher(Runnable):
                              SystemMessage(content=self.system_prompt),
                              MessagesPlaceholder("history"),
                              ("human", "Contexts:\n{context}\n\n"
-                                     "Screened Intents:\n{intent}\n"
-                                     "Utterance: {question}\n"
-                                     "Output Language: {language}\n"
-                                     "Processing State: step2")
+                                       "Screened Intents:\n{intent}\n"
+                                       "Utterance: {question}\n"
+                                       "Output Language: {language}\n"
+                                       "Processing State: step2")
                         ])
                         | self.llm
                         | StrOutputParser(),

@@ -11,17 +11,18 @@ class BaseService(ABC):
     def _get_user_history(
         self, 
         memory_key:str,
-        state: int = 0
+        state: int
     ) -> List:
         with shelve.open(f'{self._memory_path}/{memory_key}') as db:
-            data = [] if "history" not in db.keys() or state == 0 else db["history"]
+            db["history"] = [] if "history" not in db.keys() or state == 0 else db["history"]
+            data = db["history"]
         return data
     
     async def _add_user_history(
         self, 
         memory_key:str,
         data: Any,
-        state: int = 0
+        state: int
     )->None:
         with shelve.open(f'{self._memory_path}/{memory_key}') as db:
             if state == 0:

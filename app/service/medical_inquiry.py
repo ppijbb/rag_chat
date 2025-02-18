@@ -69,7 +69,7 @@ class MedicalInquiryService(BaseService):
         self,
         text:str,
         language:str,
-        state:int=0,
+        state:int,
         memory_key:str="history"
     ) -> Dict[str, str]:
         rag_chain = self.get_rag_chain(
@@ -87,7 +87,8 @@ class MedicalInquiryService(BaseService):
                 "language": language
             })
         await self._add_user_history( # 채팅 기록 저장
-            memory_key=memory_key, 
+            memory_key=memory_key,
+            state=state,
             data=[
                 HumanMessage(content=text), 
                 AIMessage(content=result["text"].strip())
@@ -98,7 +99,7 @@ class MedicalInquiryService(BaseService):
         self,
         text:str,
         language:str,
-        state:int=0,
+        state:int,
         memory_key:str="history"
     ) -> AsyncIterator:
         rag_chain = self.get_rag_chain(
@@ -261,8 +262,9 @@ class MedicalInquiryService(BaseService):
             format_datetime_with_ampm(datetime.datetime.now())
             )
         # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
-        return ({"chat_history": RunnableLambda(memory.load_memory_variables),
-                 "input": RunnablePassthrough() }
+        return (RunnablePassthrough.assign(
+                     chat_history=RunnableLambda(memory.load_memory_variables)
+                                  | RunnableLambda(lambda x: x[memory.memory_key]))
                 | EntityChain(system_prompt=entity_prompt)
                 | RunnableParallel({ 
                     # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
