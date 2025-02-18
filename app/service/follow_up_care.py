@@ -27,8 +27,6 @@ from app.service.medical_inquiry import MedicalInquiryService
     },
     max_ongoing_requests=10)
 class FollowupCareService(MedicalInquiryService):
-    system_prompt = system_prompt
-
     def __init__(self,*args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -87,37 +85,36 @@ class FollowupCareService(MedicalInquiryService):
             "question": text.strip()
             })
 
+    def _combine_context(self, step_output: Dict) -> Dict:
+        # Vector 검색 결과 처리
+        vector_results = []
+        for doc in step_output['vector_context']:
+            source_data = doc.page_content.strip()
+            metadata_text = "\n".join([f"{k}:{v}" for k, v in doc.metadata.items()])
+            vector_results.append(f"{source_data}\n{metadata_text}")
+        
+        # Neo4j 결과 가져오기
+        neo4j_result = step_output['neo4j_context'].get("result", "")
+        vector_result = "\n".join(vector_results)
+        # 컨텍스트 통합
+        combined_context = (
+            "지식 그래프 컨텍스트:\n"
+            f"{neo4j_result}\n\n"
+            "벡터 검색 컨텍스트:\n"
+            f"{vector_result}\n\n")
+        return {
+            "context": combined_context,
+            "question": step_output['question'],
+            "history": step_output['history']
+        }
+
     def get_rag_chain(
         self,
         vectorstore: HybridRAG,
         neo4j_chain: GraphCypherQAChain,
         memory: ConversationBufferMemory
     ) -> RunnableSerializable:
-        
-        def _combine_context(step_output: Dict) -> Dict:
-            # Vector 검색 결과 처리
-            vector_results = []
-            for doc in step_output['vector_context']:
-                source_data = doc.page_content.strip()
-                metadata_text = "\n".join([f"{k}:{v}" for k, v in doc.metadata.items()])
-                vector_results.append(f"{source_data}\n{metadata_text}")
-            
-            # Neo4j 결과 가져오기
-            neo4j_result = step_output['neo4j_context'].get("result", "")
-            vector_result = "\n".join(vector_results)
-            # 컨텍스트 통합
-            print(neo4j_result)
-            combined_context = (
-                "지식 그래프 컨텍스트:\n"
-                f"{neo4j_result}\n\n"
-                "벡터 검색 컨텍스트:\n"
-                f"{vector_result}\n\n")
-            return {
-                "context": combined_context,
-                "question": step_output['question'],
-                "history": step_output['history']
-            }
-        
+
         vector_retriever = self.get_adaptive_retriever(
             vectorstore=vectorstore,
             compressor=vectorstore.reranker)
@@ -127,19 +124,20 @@ class FollowupCareService(MedicalInquiryService):
                 "hospital": itemgetter("hospital"),
                 "treatment": itemgetter("treatment"),
                 "question": itemgetter("question"),
-                "vector_context": itemgetter("question") | vector_retriever,
+                "vector_context": itemgetter("question") 
+                                  | vector_retriever,
                 "neo4j_context": RunnablePassthrough.assign(
-                    query=itemgetter("question"),
-                    hospital=itemgetter("hospital"),
-                    treatment=itemgetter("treatment"))
-                    | neo4j_chain,
+                                    query=itemgetter("question"),
+                                    hospital=itemgetter("hospital"),
+                                    treatment=itemgetter("treatment"))
+                                 | neo4j_chain,
                 "history": RunnablePassthrough.assign(
-                    history=RunnableLambda(memory.load_memory_variables)
-                            | itemgetter(memory.memory_key)) 
-                    | itemgetter("history")})
-            | _combine_context
+                                history=RunnableLambda(memory.load_memory_variables)
+                                        | itemgetter(memory.memory_key)) 
+                           | itemgetter("history")})
+            | self._combine_context
             | ChatPromptTemplate.from_messages([
-                SystemMessage(content=self.system_prompt),
+                SystemMessage(content=system_prompt),
                 MessagesPlaceholder("history"),
                 ("human", "컨텍스트: \n"
                           "{context}\n\n"

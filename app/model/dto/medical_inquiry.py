@@ -23,7 +23,6 @@ class ChatResponse(BaseModel):
         cls, 
         value: str
     ) -> str:
-        print(34)
         cls._original_text = value
         if "<treatment>" in value:
             tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
@@ -42,7 +41,6 @@ class ChatResponse(BaseModel):
         cls, 
         value: str
     ) -> str:
-        print(53)
         if value is None:
             return value
         else:
@@ -86,7 +84,6 @@ class ChatResponse(BaseModel):
     def state(
         self
     ) -> int:
-        print(24)
         tag_pattern = re.compile(r'<state>(.*?)</state>', re.DOTALL)
         match = tag_pattern.search(self._original_text)
         return 0 if not match else int(match.group(1).strip())

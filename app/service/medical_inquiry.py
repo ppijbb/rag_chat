@@ -123,7 +123,9 @@ class MedicalInquiryService(BaseService):
     ) -> List[str]:
         prompt = ChatPromptTemplate.from_messages([
                 # Start of Selection
-                ("system", "제공된 질문에 대해 관련 컨텍스트를 검색하기 위해 3가지 다른 버전의 질문을 생성하세요. 다양하게 만드세요. 문장의 행별로 구분 되어야합니다."),
+                ("system", "제공된 질문에 대해 관련 컨텍스트를 검색하기 위해 3가지 다른 버전의 질문을 생성하세요. "
+                           "다양하게 만드세요. "
+                           "문장의 행별로 구분 되어야합니다."),
                 ("user", "{question}")
             ])
         chain = prompt | self.llm | LineListOutputParser()
@@ -266,11 +268,11 @@ class MedicalInquiryService(BaseService):
                     # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
                     "destination": ChatPromptTemplate.from_messages([  
                                     # 새로운 라우터 체인: route_chain과 기존의 키들을 합쳐서 dispatcher에 전달합니다.
-                                    SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
-                                    MessagesPlaceholder("history"),
-                                    ("human", "Screened Intents:\n"
-                                              "{intent}\n"
-                                              "Utterance: {question}") ])
+                                   SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+                                   MessagesPlaceholder("history"),
+                                   ("human", "Screened Intents:\n"
+                                             "{intent}\n"
+                                             "Utterance: {question}") ])
                                    | get_llm().with_structured_output(RouterQuery)
                                    | RunnableLambda(lambda x: x.destination),
                     "context": itemgetter("result")
