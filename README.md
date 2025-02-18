@@ -49,7 +49,7 @@
    # qdrant vector db 설치 및 실행
    sudo docker pull qdrant/qdrant
    sudo docker network create qdrant_server
-   sudo docker run -p 6333:6333 -p 6334:6334 \
+   sudo docker run -d -p 6333:6333 -p 6334:6334 \
     -v "$(pwd)/qdrant_storage:/qdrant/storage:z" \
     --network qdrant_server \
     --name qdrant \
