@@ -14,7 +14,7 @@ from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain.retrievers import EnsembleRetriever, ContextualCompressionRetriever, MultiQueryRetriever
 
 from langchain_core.prompts.prompt import PromptTemplate
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable
 
@@ -80,8 +80,8 @@ class MedicalInquiryService(BaseService):
                 memory_key=memory_key)
             )
         result = await rag_chain.ainvoke({"input": {"question": text}})
-        self._add_user_history(memory_key, [("user", text), ("ai", result)])
-        return result
+        self._add_user_history(memory_key, [HumanMessage(content=text), AIMessage(content=result.strip())])
+        return result.strip()
 
     async def inquiry_stream(
         self,

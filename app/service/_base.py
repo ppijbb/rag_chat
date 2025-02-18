@@ -13,7 +13,6 @@ class BaseService(ABC):
         memory_key:str
     ) -> List:
         with shelve.open(f'{self._memory_path}/{memory_key}') as db:
-            self.logger.warning(f"in file : {list(db.keys())}")
             data = [] if "history" not in db.keys() else db["history"]
         return data
     
@@ -26,10 +25,9 @@ class BaseService(ABC):
             if isinstance(data, (tuple, list)):
                 for d in data:
                     self.logger.warning(d)
-                    db["history"].append(d)
+                    db["history"] += [d]
             else:
-                db["history"].append(data)
-            self.logger.warning(db["history"])
+                db["history"] += [data]
 
     @abstractmethod
     def get_rag_chain(

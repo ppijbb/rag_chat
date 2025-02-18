@@ -1,7 +1,7 @@
 from ray import serve
 
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
 
 from langchain_neo4j import GraphCypherQAChain
@@ -53,7 +53,7 @@ class FollowupCareService(MedicalInquiryService):
             "treatment": treatment.strip(), 
             "question": text.strip()
             })
-        self._add_user_history(memory_key, [("user", text), ("ai", result)])
+        self._add_user_history(memory_key, [HumanMessage(content=text), AIMessage(content=result.strip())])
         return result
 
     async def inquiry_stream(
