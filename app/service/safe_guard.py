@@ -13,22 +13,18 @@ from transformers import AutoTokenizer
 
 from app.service.follow_up_care import FollowupCareService
 from app.core.langchain_module.guard import LMTextClassifier, CustomVotingClassifier, DiserializedOVModelForSequenceClassification
-from app.api.controller.base_router import BaseIngress
+from app.service._base import BaseService
 
 # @serve.deployment
 # @serve.ingress(app=router)
-class GaurdService(BaseIngress):
-    routing = False
-    prefix = "/medical_inquiry"
-    tags = ["Medical Inquiry"]
-    include_in_schema = False
+class GaurdService(BaseService):
    
     def __init__(
         self, 
         service: FollowupCareService = None
     ) -> None:
         super().__init__(service=service)
-        label_classes = ["BENIGN", "INJECTION", "JAILBREAK"]
+        self.label_classes: List[str] = ["BENIGN", "INJECTION", "JAILBREAK"]
     
     def get_prompt_guards(self, *args, **kwargs):
         return [
@@ -71,8 +67,8 @@ class GaurdService(BaseIngress):
         ).fit(X=self.label_classes, y=self.label_classes)
 
     @serve.batch(
-            max_batch_size=4, 
-            batch_wait_timeout_s=0.1)
+        max_batch_size=4, 
+        batch_wait_timeout_s=0.1)
     async def batched_process(
        self,
        request_prompt: List[Any],

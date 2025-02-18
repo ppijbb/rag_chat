@@ -10,22 +10,25 @@ class BaseService(ABC):
 
     def _get_user_history(
         self, 
-        memory_key:str
+        memory_key:str,
+        state: int = 0
     ) -> List:
         with shelve.open(f'{self._memory_path}/{memory_key}') as db:
-            data = [] if "history" not in db.keys() else db["history"]
+            data = [] if "history" not in db.keys() or state == 0 else db["history"]
         return data
     
-    def _add_user_history(
+    async def _add_user_history(
         self, 
-        memory_key:str, 
-        data: Any
+        memory_key:str,
+        data: Any,
+        state: int = 0
     )->None:
         with shelve.open(f'{self._memory_path}/{memory_key}') as db:
+            if state == 0:
+                db["history"] = []
             if isinstance(data, (tuple, list)):
                 for d in data:
-                    self.logger.warning(d)
-                    db["history"] += [d]
+                    db["history"] += [d] # append 사용하면 느리고 처리도 잘 안되는 경우 발생
             else:
                 db["history"] += [data]
 

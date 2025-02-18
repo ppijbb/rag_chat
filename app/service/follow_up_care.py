@@ -37,14 +37,16 @@ class FollowupCareService(MedicalInquiryService):
         hospital:str,
         treatment:str,
         text:str,
-        memory_key: str = "history"
+        state:int=0,
+        memory_key:str="history"
     ):
-        self.logger.warning(f"input : {text}")
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
-                    messages=self._get_user_history(memory_key)),
+                    messages=self._get_user_history(
+                        memory_key=memory_key,
+                        state=state)),
                 return_messages=True,
                 memory_key=memory_key)
             )
@@ -53,7 +55,12 @@ class FollowupCareService(MedicalInquiryService):
             "treatment": treatment.strip(), 
             "question": text.strip()
             })
-        self._add_user_history(memory_key, [HumanMessage(content=text), AIMessage(content=result.strip())])
+        await self._add_user_history( # 채팅 기록 저장
+            memory_key=memory_key, 
+            data=[
+                HumanMessage(content=text), 
+                AIMessage(content=result.strip())
+            ])
         return result
 
     async def inquiry_stream(
@@ -61,13 +68,16 @@ class FollowupCareService(MedicalInquiryService):
         hospital:str,
         treatment:str,
         text:str,
+        state:int = 0,
         memory_key: str = "history"
     ):
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
-                    messages=self._get_user_history(memory_key)),
+                    messages=self._get_user_history(
+                        memory_key=memory_key,
+                        state=state)),
                 return_messages=True,
                 memory_key=memory_key)
             )
