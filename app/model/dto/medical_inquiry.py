@@ -1,5 +1,5 @@
 import re
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Dict
 from pydantic import BaseModel, Field, computed_field, model_validator, field_validator
 
 class ChatRequest(BaseModel):
@@ -10,13 +10,14 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text: str
-    state: int = Field(default=0, description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 4: 치료 방법, 5: 종료")
 
     class Config:
         from_attributes = True
     
     @computed_field(description="아직 파악이 안된 경우 null로 반환.")
-    def screening(self)->str:
+    def screening(
+        self
+    ) -> Dict[str, Optional[str]]:
         result = {
             "증상": None, 
             "증상 강도": None, 
@@ -26,7 +27,7 @@ class ChatResponse(BaseModel):
             "하고싶은 말": None
         }
         tag_pattern = re.compile(r'<screening>(.*?)</screening>', re.DOTALL)
-        match = tag_pattern.search(self.text)
+        match = tag_pattern.search(self._original_text)
         if not match:
             return result
 
@@ -47,19 +48,35 @@ class ChatResponse(BaseModel):
             if len(columns) >= 2:
                 key, value = columns[0], columns[1]
                 result[key] = value
-        return result
+        return [{"label": k, "content": v} for k, v in result.items()]
     
     @computed_field(description="아직 분석이 안된 경우 null로 반환.")
-    def treatment(self)->str:
+    def treatment(
+        self
+    ) -> str:
         tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
-        match = tag_pattern.search(self.text)
+        match = tag_pattern.search(self._original_text)
         if not match:
             return None
         return match.group(1).strip()
     
+    @computed_field(description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 4: 치료 방법, 5: 종료")
+    def state(
+        self
+    ) -> int:
+        tag_pattern = re.compile(r'<state>(.*?)</state>', re.DOTALL)
+        match = tag_pattern.search(self._original_text)
+        if not match:
+            return 0
+        return int(match.group(1).strip())
+    
     @field_validator("text")
     @classmethod
-    def check_output(cls, value:str )->str:
+    def check_output(
+        cls, 
+        value:str
+    ) -> str:
+        cls._original_text = value
         if "<treatment>" in value:
             tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
             match = tag_pattern.search(value)
