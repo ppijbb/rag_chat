@@ -45,7 +45,7 @@ class VectorStore:
 
     def _get_embedding_dimensions(self):
         # return self.embeddings._client.get_sentence_embedding_dimension()
-        return self.embeddings.ov_model.get_sentence_embedding_dimension()
+        return self.embeddings.ov_model.config.hidden_size
 
     def _get_embeddings(self):
         # return HuggingFaceEmbeddings(
@@ -55,7 +55,7 @@ class VectorStore:
         #     )
         return OpenVINOBgeEmbeddings(
             # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
-            ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
+            # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
             model_name_or_path="BAAI/bge-m3",
             model_kwargs={'device': 'CPU'},
             encode_kwargs={'normalize_embeddings': True}
