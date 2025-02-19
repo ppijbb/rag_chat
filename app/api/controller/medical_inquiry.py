@@ -91,7 +91,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                     state=request.state,
                     memory_key=request.uid)
                 result.update(chain_result)
-                self.server_logger.info(f"\nRequest: {request.text}")
+                # self.server_logger.info(f"\nRequest: {request.text}")
                 self.server_logger.info(f"\nResult: {result}")
                 end = time.time()
                 # ----------------------------------- #

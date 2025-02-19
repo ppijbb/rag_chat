@@ -1,8 +1,7 @@
-from abc import ABC
 from operator import itemgetter
 from typing import List, Any, Dict, AsyncIterator
 import datetime
-import shelve
+import time
 
 from ray import serve
 
@@ -59,7 +58,7 @@ class MedicalInquiryService(BaseService):
         *args,
         **kwargs
     ):
-        self.llm = kwargs.get("llm", DDG_LLM())
+        self.llm = kwargs.get("llm", get_llm())
         self.collection_name = kwargs.get("collection_name", "pre_screening")
         self.vectorstore = VectorStore(collection_name=self.collection_name)
         self._memory_path = "qdrant_storage"
@@ -72,6 +71,7 @@ class MedicalInquiryService(BaseService):
         state:int,
         memory_key:str="history"
     ) -> Dict[str, str]:
+        start = time.time()
         rag_chain = self.get_rag_chain(
             vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
@@ -82,10 +82,13 @@ class MedicalInquiryService(BaseService):
                 memory_key=memory_key,
                 return_messages=True)
             )
+        self.service_logger.info(f"chain init takes {time.time()-start}")
+        start = time.time()
         result = await rag_chain.ainvoke({
                 "question": text,
                 "language": language
             })
+        self.service_logger.info(f"chain run takes {time.time()-start}")
         await self._add_user_history( # 채팅 기록 저장
             memory_key=memory_key,
             state=state,
@@ -235,22 +238,26 @@ class MedicalInquiryService(BaseService):
         result, category = [], []
         for doc in step_output:
             source_data = doc.page_content.strip()
-            metadata_text = "\n".join([f"{k}: {v}"
-                                    for k, v in doc.metadata.items()
-                                    if k not in ["_id", "_collection_name"]])
+            metadata_text = "\n".join([
+                f"{k}: {v}"
+                for k, v in doc.metadata.items()
+                if k not in ["_id", "_collection_name"]])
             if doc.metadata.get("치료") not in category:
                 category.append(doc.metadata.get("치료"))
                 result.append(f"Case {len(category)}\n"
-                            f"유사 사례: {source_data}\n"
-                            f"{metadata_text}")
-        return {"context":"\n\n".join(result), "raw_context": step_output}
+                              f"유사 사례: {source_data}\n"
+                              f"{metadata_text}")
+        return {
+            "context": "\n\n".join(result),
+            "raw_context": step_output
+        }
 
     # Initialize RAG chain
     def get_rag_chain(
         self,
         vectorstore: VectorStore, 
         memory: ConversationBufferMemory
-    )-> RunnableSerializable:
+    ) -> RunnableSerializable:
 
         system_prompt: str = SYSTEM_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
@@ -275,7 +282,7 @@ class MedicalInquiryService(BaseService):
                                    ("human", "Screened Intents:\n"
                                              "{intent}\n"
                                              "Utterance: {question}") ])
-                                   | get_llm().with_structured_output(RouterQuery)
+                                   | self.llm.with_structured_output(RouterQuery)
                                    | RunnableLambda(lambda x: x.destination),
                     "context": itemgetter("result")
                                | self.get_adaptive_retriever(

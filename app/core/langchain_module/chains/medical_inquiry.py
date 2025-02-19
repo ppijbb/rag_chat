@@ -1,7 +1,7 @@
 from typing import List, Dict
 import re
 from operator import itemgetter
-
+import time
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, Runnable, RunnableParallel
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
@@ -57,13 +57,14 @@ class EntityChain(Runnable):
     
     def invoke(self, input, config, **kwargs):
         # 입력 데이터를 처리하는 로직 구현
+        start = time.time()
         history = input.get("chat_history", [])
         question = input.get("question", "")
         intent = self.chain.invoke({
             "history": history,
             "question": question
         })
-        
+        print(f"Elapsed time: {time.time() - start}")
         return {
             "result": f"{' '.join([his.content for his in history if his.type=='human'])} {question}", 
             "intent": intent,
@@ -266,15 +267,18 @@ class StepDispatcher(Runnable):
     def invoke(self, input: dict, config: dict = None, **kwargs):
         destination = input.get("destination")
         print(f"route to {destination} chain")
+        start = time.time()
         match destination:
             case "step1":
-                return self.chain_step1.invoke(input, config=config, **kwargs)
+                result = self.chain_step1.invoke(input, config=config, **kwargs)
             case "step2":
-                return self.chain_step2.invoke(input, config=config, **kwargs)
+                result = self.chain_step2.invoke(input, config=config, **kwargs)
             case "step3":
-                return self.chain_step3.invoke(input, config=config, **kwargs)
+                result = self.chain_step3.invoke(input, config=config, **kwargs)
             case _:
                 raise ValueError(f"Invalid destination: {destination}")
+        print(f"{destination} chain Elapsed time: {time.time() - start}")
+        return result
 
     def batch(self, inputs: list, config: dict = None, **kwargs):
         return [self.invoke(single_input, config=config, **kwargs) for single_input in inputs]

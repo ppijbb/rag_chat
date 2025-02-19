@@ -5,9 +5,11 @@ from langchain.memory import ConversationBufferMemory
 from langchain_core.runnables import RunnableSerializable
 
 from app.core.langchain_module.rag import VectorStore
+from app.core.logging import get_logger
 
 class BaseService(ABC):
-
+    service_logger = get_logger()
+    
     def _get_user_history(
         self, 
         memory_key:str,
