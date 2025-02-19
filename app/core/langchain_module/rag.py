@@ -5,6 +5,7 @@ import torch
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
+from sentence_transformers import SentenceTransformer
 from optimum.intel.openvino import OVModelForSequenceClassification
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_core.prompts.prompt import PromptTemplate
@@ -43,7 +44,8 @@ class VectorStore:
         # return QdrantClient(":memory:")  # 메모리에서 실행 (테스트용)
 
     def _get_embedding_dimensions(self):
-        return self.embeddings._client.get_sentence_embedding_dimension()
+        # return self.embeddings._client.get_sentence_embedding_dimension()
+        return self.embeddings.ov_model.get_sentence_embedding_dimension()
 
     def _get_embeddings(self):
         # return HuggingFaceEmbeddings(
@@ -52,8 +54,9 @@ class VectorStore:
         #     model_kwargs={'device': 'cpu'}
         #     )
         return OpenVINOBgeEmbeddings(
-            # model=OVModelForSequenceClassification(model="sridhariyer/bge-reranker-v2-m3-openvino"),
-            model_name_or_path="Fede90/bge-m3-int8-ov",
+            # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
+            ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
+            model_name_or_path="BAAI/bge-m3",
             model_kwargs={'device': 'CPU'},
             encode_kwargs={'normalize_embeddings': True}
         )
