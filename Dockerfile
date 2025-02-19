@@ -20,7 +20,7 @@ WORKDIR /tmp
 COPY pyproject.toml poetry.lock* /tmp/
 
 # Poetry 설치
-RUN pip install poetry && poetry self add poetry-plugin-export
+RUN pip install poetry && poetry lock && poetry self add poetry-plugin-export
 
 # requirements.txt 생성
 RUN poetry export -f requirements.txt --without-hashes --output requirements.txt

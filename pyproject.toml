@@ -27,7 +27,8 @@ torchvision = { version = "^0.20.1", source = "torch-cu121" }
 torchaudio = { version = "^2.5.1", source = "torch-cu121" }
 pandas = "^2.2.3"
 skorch = "^1.1.0"
-optimum = {extras = ["intel"], version = "^1.24.0"}
+# optimum = {extras = ["openvino,nncf"], version = "^1.24.0"}
+optimum-intel = {extras = ["openvino"], version = "^1.22.0"}
 
 
 [[tool.poetry.source]]

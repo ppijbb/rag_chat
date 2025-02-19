@@ -5,13 +5,15 @@ import torch
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-
+from optimum.intel.openvino import OVModelForSequenceClassification
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_core.prompts.prompt import PromptTemplate
 
 from langchain_qdrant import Qdrant
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_community.document_compressors.openvino_rerank import OpenVINOReranker
+from langchain_community.embeddings.openvino import OpenVINOBgeEmbeddings
 from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
 
 from app.core.database.neo4j import NEO4J_URL, NEO4J_AUTH
@@ -40,25 +42,37 @@ class VectorStore:
         return QdrantClient(host="qdrant_vdb", port=6333)  # Qdrant 서버 주소
         # return QdrantClient(":memory:")  # 메모리에서 실행 (테스트용)
 
-    def _get_embeddings(self):
-        return HuggingFaceEmbeddings(
-            model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
-            # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
-            model_kwargs={'device': 'cpu'}
-            )
-
     def _get_embedding_dimensions(self):
         return self.embeddings._client.get_sentence_embedding_dimension()
 
+    def _get_embeddings(self):
+        # return HuggingFaceEmbeddings(
+        #     model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
+        #     # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+        #     model_kwargs={'device': 'cpu'}
+        #     )
+        return OpenVINOBgeEmbeddings(
+            # model=OVModelForSequenceClassification(model="sridhariyer/bge-reranker-v2-m3-openvino"),
+            model_name_or_path="Fede90/bge-m3-int8-ov",
+            model_kwargs={'device': 'CPU'},
+            encode_kwargs={'normalize_embeddings': True}
+        )
+
     def _get_reranker(self):
-        return CrossEncoderReranker(
-            model=HuggingFaceCrossEncoder(
-                model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
-                # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
-                model_kwargs={'device': 'cpu'}
-                ),
+        # return CrossEncoderReranker(
+        #     model=HuggingFaceCrossEncoder(
+        #         model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
+        #         # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+        #         model_kwargs={'device': 'cpu'}
+        #         ),
+        #     top_n=2
+        #     )
+        return OpenVINOReranker(
+            model_name_or_path="sridhariyer/bge-reranker-v2-m3-openvino",
+            model_kwargs={'device': 'CPU'},
+            encode_kwargs={'normalize_embeddings': True},
             top_n=2
-            )
+        )
 
     def _ensure_collection(self):
         """컬렉션이 없으면 생성"""
