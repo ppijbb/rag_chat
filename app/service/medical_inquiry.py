@@ -61,6 +61,9 @@ class MedicalInquiryService(BaseService):
         self.llm = kwargs.get("llm", get_llm())
         self.collection_name = kwargs.get("collection_name", "pre_screening")
         self.vectorstore = VectorStore(collection_name=self.collection_name)
+        self.rag = self.get_adaptive_retriever(
+            vectorstore=self.vectorstore.vectorstore,
+            compressor=self.vectorstore.reranker)
         self._memory_path = "qdrant_storage"
         self.logger = get_logger()
         
@@ -120,21 +123,6 @@ class MedicalInquiryService(BaseService):
                 "language": language
             })
 
-    # Adaptive RAG components
-    def generate_queries(
-        self, 
-        question: str
-    ) -> List[str]:
-        prompt = ChatPromptTemplate.from_messages([
-                # Start of Selection
-                ("system", "제공된 질문에 대해 관련 컨텍스트를 검색하기 위해 3가지 다른 버전의 질문을 생성하세요. "
-                           "다양하게 만드세요. "
-                           "문장의 행별로 구분 되어야합니다."),
-                ("user", "{question}")
-            ])
-        chain = prompt | self.llm | LineListOutputParser()
-        return chain.invoke({"question": question})
-
     def get_adaptive_retriever(
         self, 
         vectorstore: VectorStore, 
@@ -157,7 +145,7 @@ class MedicalInquiryService(BaseService):
             retriever=vector_retriever,
             llm=self.llm,
             # parser_key="lines", # parser_key는 더 이상 사용하지 않음
-            include_original=True,
+            include_original=False,
             prompt=PromptTemplate(
                 template=MULTI_QUERY_PROMPT
             )
@@ -269,36 +257,89 @@ class MedicalInquiryService(BaseService):
             format_datetime_with_ampm(datetime.datetime.now())
             )
         # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
-        return (RunnablePassthrough.assign(
-                     chat_history=RunnableLambda(memory.load_memory_variables)
-                                  | RunnableLambda(lambda x: x[memory.memory_key]))
-                | EntityChain(system_prompt=entity_prompt)
-                | RunnableParallel({ 
-                    # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
-                    "destination": ChatPromptTemplate.from_messages([  
-                                    # 새로운 라우터 체인: route_chain과 기존의 키들을 합쳐서 dispatcher에 전달합니다.
-                                   SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
-                                   MessagesPlaceholder("history"),
-                                   ("human", "Screened Intents:\n"
-                                             "{intent}\n"
-                                             "Utterance: {question}") ])
-                                   | self.llm.with_structured_output(RouterQuery)
-                                   | RunnableLambda(lambda x: x.destination),
-                    "context": itemgetter("result")
-                               | self.get_adaptive_retriever(
-                                   vectorstore=vectorstore.vectorstore,
-                                   compressor=vectorstore.reranker)
-                               | self._process_context,
-                    "question": itemgetter("question"),
-                    "intent": itemgetter("intent"),
-                    "parsed_intent": itemgetter("parsed_intent"),
-                    "history": itemgetter("history"),
-                    "language": itemgetter("language")})
-                | RunnablePassthrough.assign(
-                    context=RunnableLambda(lambda x: x["context"]["context"]),
-                    raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
-                    raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]]))
-                | StepDispatcher(
-                    system_prompt=system_prompt, 
-                    timer_prompt=timer_prompt)
-            )
+        # return (RunnablePassthrough.assign(
+        #              chat_history=RunnableLambda(memory.load_memory_variables)
+        #                           | RunnableLambda(lambda x: x[memory.memory_key]))
+        #         | EntityChain(system_prompt=entity_prompt)
+        #         | RunnableParallel({ 
+        #             # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
+        #             "destination": ChatPromptTemplate.from_messages([  
+        #                             # 새로운 라우터 체인: route_chain과 기존의 키들을 합쳐서 dispatcher에 전달합니다.
+        #                            SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+        #                            MessagesPlaceholder("history"),
+        #                            ("human", "Screened Intents:\n"
+        #                                      "{intent}\n"
+        #                                      "Utterance: {question}") ])
+        #                            | self.llm.with_structured_output(RouterQuery)
+        #                            | RunnableLambda(lambda x: x.destination),
+        #             "context": itemgetter("result")
+        #                        | self.rag
+        #                        | self._process_context,
+        #             "question": itemgetter("question"),
+        #             "intent": itemgetter("intent"),
+        #             "parsed_intent": itemgetter("parsed_intent"),
+        #             "history": itemgetter("history"),
+        #             "language": itemgetter("language")})
+        #         | RunnablePassthrough.assign(
+        #             context=RunnableLambda(lambda x: x["context"]["context"]),
+        #             raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
+        #             raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]]))
+        #         | StepDispatcher(
+        #             system_prompt=system_prompt, 
+        #             timer_prompt=timer_prompt)
+        #     )
+
+        def timed_stage(stage_name: str, runnable):
+            def timed_fn(x):
+                import time
+                start = time.time()
+                self.service_logger.warning(x)
+                # Execute the given runnable (using .invoke if available, otherwise call it)
+                result = runnable.invoke(input=x, config=None) if hasattr(runnable, "invoke") else runnable(input=x, config=None)
+                elapsed = time.time() - start
+                self.logger.info(f"{stage_name} took {elapsed:.4f} seconds")
+                return result
+            return RunnableLambda(timed_fn)
+        
+        # Break down the original pipeline into stages so we can time each one.
+        stage1 = RunnablePassthrough.assign(
+            chat_history=RunnableLambda(memory.load_memory_variables)
+                         | RunnableLambda(lambda x: x[memory.memory_key])
+        )
+        stage2 = EntityChain(system_prompt=entity_prompt)
+        stage3 = RunnableParallel({
+            "destination": ChatPromptTemplate.from_messages([
+                SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+                MessagesPlaceholder("history"),
+                ("human", "Screened Intents:\n{intent}\nUtterance: {question}")
+            ])
+            | self.llm.with_structured_output(RouterQuery)
+            | RunnableLambda(lambda x: x.destination),
+            "context": itemgetter("result")
+                       | self.rag
+                       | self._process_context,
+            "question": itemgetter("question"),
+            "intent": itemgetter("intent"),
+            "parsed_intent": itemgetter("parsed_intent"),
+            "history": itemgetter("history"),
+            "language": itemgetter("language")
+        })
+        stage4 = RunnablePassthrough.assign(
+            context=RunnableLambda(lambda x: x["context"]["context"]),
+            raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
+            raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]])
+        )
+        stage5 = StepDispatcher(
+            system_prompt=system_prompt,
+            timer_prompt=timer_prompt
+        )
+        
+        # Compose the pipeline while wrapping each stage with the timing wrapper.
+        timed_chain = (
+            timed_stage("Stage 1: Load Memory and Chat History", stage1)
+            | timed_stage("Stage 2: EntityChain", stage2)
+            | timed_stage("Stage 3: RunnableParallel", stage3)
+            | timed_stage("Stage 4: Context Assignment", stage4)
+            | timed_stage("Stage 5: StepDispatcher", stage5)
+        )
+        return timed_chain
