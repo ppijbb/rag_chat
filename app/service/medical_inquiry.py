@@ -141,6 +141,7 @@ class MedicalInquiryService(BaseService):
         )
         
         # Multi-query retriever
+        # multi_query_retriever = vector_retriever.vectorstore.as_retriever()
         multi_query_retriever = MultiQueryRetriever.from_llm(
             retriever=vector_retriever,
             llm=self.llm,
@@ -224,6 +225,7 @@ class MedicalInquiryService(BaseService):
         step_output
     ) -> Dict[str, str]:
         result, category = [], []
+        start = time.time()
         for doc in step_output:
             source_data = doc.page_content.strip()
             metadata_text = "\n".join([
@@ -235,6 +237,7 @@ class MedicalInquiryService(BaseService):
                 result.append(f"Case {len(category)}\n"
                               f"유사 사례: {source_data}\n"
                               f"{metadata_text}")
+        self.logger.info(f"Context processing took {time.time()-start}")
         return {
             "context": "\n\n".join(result),
             "raw_context": step_output
@@ -290,12 +293,12 @@ class MedicalInquiryService(BaseService):
         #     )
 
         def timed_stage(stage_name: str, runnable):
-            def timed_fn(x):
+            def timed_fn(*args):
                 import time
                 start = time.time()
-                self.service_logger.warning(x)
+                self.service_logger.warning(args)
                 # Execute the given runnable (using .invoke if available, otherwise call it)
-                result = runnable.invoke(input=x, config=None) if hasattr(runnable, "invoke") else runnable(input=x, config=None)
+                result = runnable.invoke(input=args[0], config=None) if hasattr(runnable, "invoke") else runnable(input=args[0], config=None)
                 elapsed = time.time() - start
                 self.logger.info(f"{stage_name} took {elapsed:.4f} seconds")
                 return result
