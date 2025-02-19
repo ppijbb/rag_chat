@@ -1,18 +1,30 @@
 import requests
-from pydantic import Field
-from typing import Dict, Any, List, Optional, Iterator
+from typing import Dict, Any, List, Optional, Union, cast, Callable
+from operator import itemgetter
+from collections.abc import Iterator, Sequence
+
+from pydantic import Field, BaseModel
 from duckduckgo_search import DDGS
+
 from langchain_core.language_models.llms import LLM
-from langchain_core.outputs import GenerationChunk
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import BaseMessage
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.outputs import GenerationChunk
+from langchain_core.language_models.base import LanguageModelInput
+from langchain_core.runnables import RunnableMap, RunnablePassthrough
+from langchain_core.utils.function_calling import convert_to_openai_tool
+from langchain_core.utils.pydantic import is_basemodel_subclass, TypeBaseModel
+from langchain_core.output_parsers.base import OutputParserLike
+from langchain_core.runnables import Runnable
+from langchain_core.tools import BaseTool
 
+from langchain_openai import ChatOpenAI
 
 def get_llm():
-    from langchain_openai import ChatOpenAI
     return ChatOpenAI(model="gpt-4o-mini", temperature=0.5)
-    # return DDG_LLM()    
+    # return DDG_LLM()
 
 
 class DDG_LLM(LLM):
@@ -122,6 +134,57 @@ class DDG_LLM(LLM):
                 run_manager.on_llm_new_token(chunk.text, chunk=chunk)
 
             yield chunk
+
+    def bind_tools(
+        self,
+        tools: Sequence[
+            Union[Dict[str, Any], type, Callable, BaseTool]  # noqa: UP006
+        ],
+        **kwargs: Any,
+    ) -> Runnable[LanguageModelInput, BaseMessage]:
+        raise NotImplementedError
+    
+    def with_structured_output(
+        self,
+        schema: Union[Dict, type],  # noqa: UP006
+        *,
+        include_raw: bool = False,
+        **kwargs: Any,
+    ) -> Runnable[LanguageModelInput, Union[Dict, BaseModel]]:  # noqa: UP006
+
+        if kwargs:
+            msg = f"Received unsupported arguments {kwargs}"
+            raise ValueError(msg)
+
+        from langchain_core.output_parsers.openai_tools import (
+            JsonOutputKeyToolsParser,
+            PydanticToolsParser,
+        )
+
+        if self.bind_tools is BaseChatModel.bind_tools:
+            msg = "with_structured_output is not implemented for this model."
+            raise NotImplementedError(msg)
+        llm = self.bind_tools([schema], tool_choice="any")
+        if isinstance(schema, type) and is_basemodel_subclass(schema):
+            output_parser: OutputParserLike = PydanticToolsParser(
+                tools=[cast(TypeBaseModel, schema)], first_tool_only=True
+            )
+        else:
+            key_name = convert_to_openai_tool(schema)["function"]["name"]
+            output_parser = JsonOutputKeyToolsParser(
+                key_name=key_name, first_tool_only=True
+            )
+        if include_raw:
+            parser_assign = RunnablePassthrough.assign(
+                parsed=itemgetter("raw") | output_parser, parsing_error=lambda _: None
+            )
+            parser_none = RunnablePassthrough.assign(parsed=lambda _: None)
+            parser_with_fallback = parser_assign.with_fallbacks(
+                [parser_none], exception_key="parsing_error"
+            )
+            return RunnableMap(raw=llm) | parser_with_fallback
+        else:
+            return llm | output_parser
 
 
 class Den_LLM(LLM):
