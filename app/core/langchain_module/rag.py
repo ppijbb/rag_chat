@@ -1,25 +1,52 @@
 import uuid
-from typing import List, Dict, Optional, Any
-
-import torch
+from typing import List, Dict, Optional, Any, Sequence
+from operator import itemgetter
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from optimum.intel.openvino import OVModelForSequenceClassification
+
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_core.prompts.prompt import PromptTemplate
-
+from langchain_core.callbacks import Callbacks
 from langchain.schema import Document
 from langchain_qdrant import Qdrant
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
-from langchain_community.document_compressors.openvino_rerank import OpenVINOReranker
+from langchain_community.document_compressors.openvino_rerank import OpenVINOReranker, RerankRequest
 from langchain_community.embeddings.openvino import OpenVINOBgeEmbeddings
 from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
 
 from app.core.database.neo4j import NEO4J_URL, NEO4J_AUTH
 from app.core.langchain_module.llm import DDG_LLM
 from app.core.prompts.follow_up_care import system_prompt, neo4j_query_prompt, graph_rag_prompt
+
+
+class CustomOVCrossEncoderReranker(OpenVINOReranker):
+    def compress_documents(
+        self,
+        documents: Sequence[Document],
+        query: str,
+        callbacks: Optional[Callbacks] = None,
+    ) -> Sequence[Document]:
+        passages = [
+            {
+                "id": i, 
+                "text": doc.page_content, 
+                "meta_data": doc.metadata
+            } for i, doc in enumerate(documents)
+        ]
+
+        rerank_request = RerankRequest(query=query, passages=passages)
+        rerank_response = self.rerank(rerank_request)[: self.top_n]
+        final_results = []
+        for r in rerank_response:
+            doc = Document(
+                page_content=r["text"],
+                metadata={"id": r["id"], "relevance_score": r["score"], **r["meta_data"]},
+            )
+            final_results.append(doc)
+        return final_results
 
 
 class VectorStore:
@@ -45,37 +72,37 @@ class VectorStore:
         # return QdrantClient(":memory:")  # 메모리에서 실행 (테스트용)
 
     def _get_embedding_dimensions(self):
-        return self.embeddings._client.get_sentence_embedding_dimension()
-        # return self.embeddings.ov_model.config.hidden_size
+        # return self.embeddings._client.get_sentence_embedding_dimension()
+        return self.embeddings.ov_model.config.hidden_size
 
     def _get_embeddings(self):
-        return HuggingFaceEmbeddings(
-            model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
-            # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
-            model_kwargs={"device": "cpu", "backend": "openvino"}
-            )
-        # return OpenVINOBgeEmbeddings(
-        #     # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
-        #     # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
-        #     model_name_or_path="BAAI/bge-m3",
-        #     model_kwargs={'device': 'CPU'},
-        #     encode_kwargs={'normalize_embeddings': False}
-        # )
+        # return HuggingFaceEmbeddings(
+        #     model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
+        #     # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+        #     model_kwargs={"device": "cpu", "backend": "openvino"}
+        #     )
+        return OpenVINOBgeEmbeddings(
+            # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
+            # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
+            model_name_or_path="BAAI/bge-m3",
+            model_kwargs={'device': 'CPU'},
+            encode_kwargs={'normalize_embeddings': False}
+        )
 
     def _get_reranker(self):
-        return CrossEncoderReranker(
-            model=HuggingFaceCrossEncoder(
-                model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
-                model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
-                # model_kwargs={"device": "cpu",}
-                ),
-            top_n=2
-            )
-        # return OpenVINOReranker(
-        #     model_name_or_path="sridhariyer/bge-reranker-v2-m3-openvino",
-        #     model_kwargs={'device': 'CPU'},
+        # return CrossEncoderReranker(
+        #     model=HuggingFaceCrossEncoder(
+        #         model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
+        #         model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+        #         # model_kwargs={"device": "cpu",}
+        #         ),
         #     top_n=2
-        # )
+        #     )
+        return CustomOVCrossEncoderReranker(
+            model_name_or_path="sridhariyer/bge-reranker-v2-m3-openvino",
+            model_kwargs={'device': 'CPU'},
+            top_n=2
+        )
     
     def _get_all_docs(self):
         all_docs = []
