@@ -5,11 +5,11 @@ import torch
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from sentence_transformers import SentenceTransformer
 from optimum.intel.openvino import OVModelForSequenceClassification
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_core.prompts.prompt import PromptTemplate
 
+from langchain.schema import Document
 from langchain_qdrant import Qdrant
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
@@ -29,6 +29,7 @@ class VectorStore:
         self.embeddings = self._get_embeddings()
         self.embedding_dimensions = self._get_embedding_dimensions()
         self.vectorstore = self._init_vectorstore()
+        self.all_docs = self._get_all_docs()
         self.reranker = self._get_reranker()
         self._ensure_collection()       
 
@@ -44,38 +45,56 @@ class VectorStore:
         # return QdrantClient(":memory:")  # 메모리에서 실행 (테스트용)
 
     def _get_embedding_dimensions(self):
-        # return self.embeddings._client.get_sentence_embedding_dimension()
-        return self.embeddings.ov_model.config.hidden_size
+        return self.embeddings._client.get_sentence_embedding_dimension()
+        # return self.embeddings.ov_model.config.hidden_size
 
     def _get_embeddings(self):
-        # return HuggingFaceEmbeddings(
-        #     model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
-        #     # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
-        #     model_kwargs={'device': 'cpu'}
-        #     )
-        return OpenVINOBgeEmbeddings(
-            # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
-            # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
-            model_name_or_path="BAAI/bge-m3",
-            model_kwargs={'device': 'CPU'},
-            encode_kwargs={'normalize_embeddings': True}
-        )
+        return HuggingFaceEmbeddings(
+            model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
+            # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+            model_kwargs={"device": "cpu", "backend": "openvino"}
+            )
+        # return OpenVINOBgeEmbeddings(
+        #     # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
+        #     # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
+        #     model_name_or_path="BAAI/bge-m3",
+        #     model_kwargs={'device': 'CPU'},
+        #     encode_kwargs={'normalize_embeddings': False}
+        # )
 
     def _get_reranker(self):
-        # return CrossEncoderReranker(
-        #     model=HuggingFaceCrossEncoder(
-        #         model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
-        #         # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
-        #         model_kwargs={'device': 'cpu'}
-        #         ),
-        #     top_n=2
-        #     )
-        return OpenVINOReranker(
-            model_name_or_path="sridhariyer/bge-reranker-v2-m3-openvino",
-            model_kwargs={'device': 'CPU'},
-            encode_kwargs={'normalize_embeddings': True},
+        return CrossEncoderReranker(
+            model=HuggingFaceCrossEncoder(
+                model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
+                model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+                # model_kwargs={"device": "cpu",}
+                ),
             top_n=2
-        )
+            )
+        # return OpenVINOReranker(
+        #     model_name_or_path="sridhariyer/bge-reranker-v2-m3-openvino",
+        #     model_kwargs={'device': 'CPU'},
+        #     top_n=2
+        # )
+    
+    def _get_all_docs(self):
+        all_docs = []
+        try:
+            results = self.vectorstore.client.scroll(
+                collection_name=self.vectorstore.collection_name,
+                limit=1000  # 적절한 수로 조정
+            )[0]
+            for result in results:
+                if result.payload.get("page_content"):  # 유효한 문서만 추가
+                    all_docs.append(
+                        Document(
+                            page_content=result.payload.get("page_content", ""),
+                            metadata=result.payload.get("metadata", {})
+                        )
+                    )
+        except Exception as e:
+            print(f"BM25 초기화 중 오류 발생: {e}")
+            all_docs = []
 
     def _ensure_collection(self):
         """컬렉션이 없으면 생성"""
@@ -129,16 +148,13 @@ class VectorStore:
                 collection_name=self.collection_name,
                 query_vector=search_vector,
                 limit=limit,
-                score_threshold=0.7
+                score_threshold=0.3
             )
-            return [
-                {
-                    "text": result.payload["page_content"],
-                    "metadata": result.payload["metadata"],
-                    "score": result.score
-                }
-                for result in results
-            ]
+            return [{
+                "text": result.payload["page_content"],
+                "metadata": result.payload["metadata"],
+                "score": result.score
+                } for result in results]
         except Exception as e:
             print(f"Error searching: {e}")
             return []

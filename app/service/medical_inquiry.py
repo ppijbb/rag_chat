@@ -19,7 +19,6 @@ from langchain_core.runnables import RunnableParallel, RunnablePassthrough, Runn
 
 from langchain_community.retrievers import BM25Retriever
 
-from app.core.logging import get_logger
 from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.util.time_func import format_datetime_with_ampm
@@ -27,6 +26,7 @@ from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDi
 from app.model.dto.medical_inquiry import RouterQuery
 from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT, TIMER_PROMPT, MULTI_QUERY_PROMPT
 from app.service._base import BaseService
+
 
 @serve.deployment(
     placement_group_bundles=[{
@@ -63,9 +63,9 @@ class MedicalInquiryService(BaseService):
         self.vectorstore = VectorStore(collection_name=self.collection_name)
         self.rag = self.get_adaptive_retriever(
             vectorstore=self.vectorstore.vectorstore,
-            compressor=self.vectorstore.reranker)
+            compressor=self.vectorstore.reranker,
+            vector_docs=self.vectorstore.all_docs)
         self._memory_path = "qdrant_storage"
-        self.logger = get_logger()
         
     async def inquiry_chat(
         self,
@@ -76,7 +76,6 @@ class MedicalInquiryService(BaseService):
     ) -> Dict[str, str]:
         start = time.time()
         rag_chain = self.get_rag_chain(
-            vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
                     messages=self._get_user_history(
@@ -109,7 +108,6 @@ class MedicalInquiryService(BaseService):
         memory_key:str="history"
     ) -> AsyncIterator:
         rag_chain = self.get_rag_chain(
-            vectorstore=self.vectorstore,
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
                     messages=self._get_user_history(
@@ -126,7 +124,8 @@ class MedicalInquiryService(BaseService):
     def get_adaptive_retriever(
         self, 
         vectorstore: VectorStore, 
-        compressor: CrossEncoderReranker
+        compressor: CrossEncoderReranker,
+        vector_docs: List[Document] = []
     ) -> ContextualCompressionRetriever:
         # Base vector retriever
         k = 5
@@ -134,7 +133,7 @@ class MedicalInquiryService(BaseService):
             search_type="similarity_score_threshold",  # similarity, similarity_score_threshold, mmr
             search_kwargs={
                 "k": k,
-                "score_threshold": 0.7,
+                "score_threshold": 0.6,
                 # "fetch_k": 20,
                 # "lambda_mult": 0.7
             }
@@ -146,37 +145,17 @@ class MedicalInquiryService(BaseService):
             retriever=vector_retriever,
             llm=self.llm,
             # parser_key="lines", # parser_key는 더 이상 사용하지 않음
-            include_original=False,
+            include_original=True,
             prompt=PromptTemplate(
                 template=MULTI_QUERY_PROMPT
             )
         )
 
-        # BM25 retriever 초기화
-        # vectorstore에서 모든 문서 가져오기
-        all_docs = []
-        try:
-            results = vectorstore.client.scroll(
-                collection_name=vectorstore.collection_name,
-                limit=1000  # 적절한 수로 조정
-            )[0]
-            for result in results:
-                if result.payload.get("page_content"):  # 유효한 문서만 추가
-                    all_docs.append(
-                        Document(
-                            page_content=result.payload.get("page_content", ""),
-                            metadata=result.payload.get("metadata", {})
-                        )
-                    )
-        except Exception as e:
-            print(f"BM25 초기화 중 오류 발생: {e}")
-            all_docs = []
-
         # 문서가 있을 때만 BM25와 Ensemble 사용
-        if all_docs:
+        if vector_docs:
             # BM25 retriever 설정
             bm25_retriever = BM25Retriever.from_documents(
-                documents=all_docs,
+                documents=vector_docs,
                 bm25_params={
                     "b": 0.75,
                     "k1": 1.2                
@@ -226,6 +205,7 @@ class MedicalInquiryService(BaseService):
     ) -> Dict[str, str]:
         result, category = [], []
         start = time.time()
+        self.service_logger.warning(f"rag step output {step_output}")
         for doc in step_output:
             source_data = doc.page_content.strip()
             metadata_text = "\n".join([
@@ -237,7 +217,7 @@ class MedicalInquiryService(BaseService):
                 result.append(f"Case {len(category)}\n"
                               f"유사 사례: {source_data}\n"
                               f"{metadata_text}")
-        self.logger.info(f"Context processing took {time.time()-start}")
+        self.service_logger.info(f"Context processing took {time.time()-start}")
         return {
             "context": "\n\n".join(result),
             "raw_context": step_output
@@ -246,7 +226,6 @@ class MedicalInquiryService(BaseService):
     # Initialize RAG chain
     def get_rag_chain(
         self,
-        vectorstore: VectorStore, 
         memory: ConversationBufferMemory
     ) -> RunnableSerializable:
 
@@ -296,11 +275,10 @@ class MedicalInquiryService(BaseService):
             def timed_fn(*args):
                 import time
                 start = time.time()
-                self.service_logger.warning(args)
                 # Execute the given runnable (using .invoke if available, otherwise call it)
                 result = runnable.invoke(input=args[0], config=None) if hasattr(runnable, "invoke") else runnable(input=args[0], config=None)
                 elapsed = time.time() - start
-                self.logger.info(f"{stage_name} took {elapsed:.4f} seconds")
+                self.service_logger.info(f"{stage_name} took {elapsed:.4f} seconds")
                 return result
             return RunnableLambda(timed_fn)
         
@@ -312,12 +290,11 @@ class MedicalInquiryService(BaseService):
         stage2 = EntityChain(system_prompt=entity_prompt)
         stage3 = RunnableParallel({
             "destination": ChatPromptTemplate.from_messages([
-                SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
-                MessagesPlaceholder("history"),
-                ("human", "Screened Intents:\n{intent}\nUtterance: {question}")
-            ])
-            | self.llm.with_structured_output(RouterQuery)
-            | RunnableLambda(lambda x: x.destination),
+                            SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+                            MessagesPlaceholder("history"),
+                            ("human", "Screened Intents:\n{intent}\nUtterance: {question}")])
+                           | self.llm.with_structured_output(RouterQuery)
+                           | RunnableLambda(lambda x: x.destination),
             "context": itemgetter("result")
                        | self.rag
                        | self._process_context,

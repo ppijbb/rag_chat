@@ -92,7 +92,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                     memory_key=request.uid)
                 result.update(chain_result)
                 # self.server_logger.info(f"\nRequest: {request.text}")
-                self.server_logger.info(f"\nResult: {result}")
+                self.server_logger.info(f"Result: {result}")
                 end = time.time()
                 # ----------------------------------- #
                 assert len(result) > 0, "Generation failed"

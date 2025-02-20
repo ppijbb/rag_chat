@@ -11,7 +11,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text: str
-    screening: Optional[List[Dict[str,str]]] # 데이터 처리 고려한 Obejct List 타입으로 전달 
+    screening: Optional[List[Dict[str, str | None]]] # 데이터 처리 고려한 Obejct List 타입으로 전달 
     treatment: Optional[List[str]]
 
     class Config:
@@ -74,7 +74,7 @@ class ChatResponse(BaseModel):
                     columns = [col.strip() for col in line.strip("|").split("|")]
                     if len(columns) >= 2:
                         key, value = columns[0], columns[1]
-                        result[key] = value
+                        result[key] = value.strip() if len(value.strip()) > 1 else None
             except AssertionError as e:
                 result = result
             finally:

@@ -153,6 +153,7 @@ class TimerChain(Runnable):
         intents = input.get("parsed_intent", {})
         treatment_data = {}
         for treat in raw_context:
+            print(treat)
             if any([a for a in answers if a in treat.metadata["치료"]]):
                 treatment_data[treat.metadata["치료"]] = {
                     "time": treat.metadata["소요 시간"],
@@ -194,8 +195,8 @@ class StepDispatcher(Runnable):
                              MessagesPlaceholder("history"),
                              ("human", "Contexts:\n{context}\n\n"
                                        "Screened Intents:\n{intent}\n"
-                                       "Utterance: {question}\n"
-                                       "Output Language: {language}\n"
+                                       "Utterance: {question}"
+                                       "(이 발화에 대한 응답은 해당하는 언어로 해주세요: {language})\n"
                                        "Processing State: step1")
                         ])
                         | self.llm
@@ -231,8 +232,8 @@ class StepDispatcher(Runnable):
                         MessagesPlaceholder("history"),
                         ("human", "Contexts:\n{context}\n\n"
                                   "Screened Intents:\n{intent}\n"
-                                  "Utterance: {question}\n"
-                                  "Output Language: {language}\n"
+                                  "Utterance: {question}"
+                                  "(이 발화에 대한 응답은 해당하는 언어로 해주세요: {language})\n"
                                   "Processing State: step2\n\n")])
                      | self.llm
                      | StrOutputParser(),
