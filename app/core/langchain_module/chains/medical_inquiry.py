@@ -195,8 +195,8 @@ class StepDispatcher(Runnable):
                              MessagesPlaceholder("history"),
                              ("human", "Contexts:\n{context}\n\n"
                                        "Screened Intents:\n{intent}\n"
-                                       "Utterance: {question}"
-                                       "(이 발화에 대한 응답은 해당하는 언어로 해주세요: {language})\n"
+                                       "Utterance: {question}\n"
+                                       "Language: {language}\n"
                                        "Processing State: step1")
                         ])
                         | self.llm
@@ -232,8 +232,8 @@ class StepDispatcher(Runnable):
                         MessagesPlaceholder("history"),
                         ("human", "Contexts:\n{context}\n\n"
                                   "Screened Intents:\n{intent}\n"
-                                  "Utterance: {question}"
-                                  "(이 발화에 대한 응답은 해당하는 언어로 해주세요: {language})\n"
+                                  "Utterance: {question}\n"
+                                  "Language: {language}\n"
                                   "Processing State: step2\n\n")])
                      | self.llm
                      | StrOutputParser(),
@@ -255,7 +255,7 @@ class StepDispatcher(Runnable):
                              ("human", "Contexts:\n{context}\n\n"
                                        "Screened Intents:\n{intent}\n"
                                        "Utterance: {question}\n"
-                                       "Output Language: {language}\n"
+                                       "Language: {language}\n"
                                        "Processing State: step2")])
                         | self.llm
                         | StrOutputParser(),

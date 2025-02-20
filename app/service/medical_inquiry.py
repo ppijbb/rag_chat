@@ -82,7 +82,8 @@ class MedicalInquiryService(BaseService):
                         memory_key=memory_key,
                         state=state)),
                 memory_key=memory_key,
-                return_messages=True)
+                return_messages=True),
+            language=language
             )
         self.service_logger.info(f"chain init takes {time.time()-start}")
         start = time.time()
@@ -114,7 +115,8 @@ class MedicalInquiryService(BaseService):
                         memory_key=memory_key,
                         state=state)),
                 return_messages=True,
-                memory_key=memory_key)
+                memory_key=memory_key),
+            language=language
             )
         return rag_chain.astream({
                 "question": text,
@@ -226,12 +228,14 @@ class MedicalInquiryService(BaseService):
     # Initialize RAG chain
     def get_rag_chain(
         self,
-        memory: ConversationBufferMemory
+        memory: ConversationBufferMemory,
+        language: str,
     ) -> RunnableSerializable:
 
         system_prompt: str = SYSTEM_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
-            ", ".join(self.dental_section_list)) # 통증 부위 목록
+            ", ".join(self.dental_section_list),
+            language) # 통증 부위 목록
         entity_prompt: str = ENTITY_PROMPT.format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
             )
