@@ -12,6 +12,7 @@ from ray import serve
 from app.service.medical_inquiry import MedicalInquiryService
 from app.model.dto.medical_inquiry import ChatRequest, ChatResponse
 from app.api.controller.base_router import BaseIngress
+from app.api.controller.descriptions.medical_inquiry import chat_description
 
 router = APIRouter()
 
@@ -64,15 +65,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
 
         @router.post(
             "/chat", 
-            description='''
-            **state 값 정의**\n
-            - 0: 시작
-            - 1: 증상 부위 입력
-            - 2: 진행 중
-            - 3: 요약
-            - 4: 치료
-            - 5: 종료
-            ''',
+            description=chat_description,
             response_model=ChatResponse)
         async def medical_inquiry_chat(
             request: ChatRequest,
@@ -108,15 +101,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
 
         @router.post(
             "/chat/stream",
-            description='''
-            **state 값 정의**\n
-            - 0: 시작
-            - 1: 증상 부위 입력
-            - 2: 진행 중
-            - 3: 요약
-            - 4: 치료
-            - 5: 종료
-            ''',
+            description=chat_description,
         )
         async def medical_inquiry_chat_stream(
             request: ChatRequest,
