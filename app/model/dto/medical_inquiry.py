@@ -13,6 +13,7 @@ class ChatResponse(BaseModel):
     text: str
     screening: Optional[List[Dict[str, str | None]]] # 데이터 처리 고려한 Obejct List 타입으로 전달 
     treatment: Optional[List[str]]
+    language: Optional[str]
 
     class Config:
         from_attributes = True
@@ -44,14 +45,25 @@ class ChatResponse(BaseModel):
         if value is None:
             return value
         else:
-            result = {
-                "증상": None, 
-                "증상 강도": None, 
-                "증상 부위": None, 
-                "지속 기간": None, 
-                "증상 유발요인": None, 
-                "하고 싶은 말": None
-            }
+            match cls.language:
+                case "ko":
+                    result = {
+                        "증상": None, 
+                        "증상 강도": None, 
+                        "증상 부위": None, 
+                        "지속 기간": None, 
+                        "증상 유발요인": None, 
+                        "하고 싶은 말": None
+                    }
+                case "en":
+                    result = {
+                        "Symptoms": None, 
+                        "Severity": None, 
+                        "Symptoms Area": None, 
+                        "Duration": None, 
+                        "Specific Situations": None, 
+                        "Special Considerations": None
+                    }
             try:
                 tag_pattern = re.compile(r'<screening>(.*?)</screening>', re.DOTALL)
                 match = tag_pattern.search(value)

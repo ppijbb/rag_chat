@@ -97,7 +97,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 self.server_logger.error("unkwon error" + e)
                 result["text"] = "Generation failed"
             finally:
-                return ChatResponse(**result)
+                return ChatResponse(language=request.lang, **result)
 
         @router.post(
             "/chat/stream",
