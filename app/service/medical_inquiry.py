@@ -24,7 +24,7 @@ from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.util.time_func import format_datetime_with_ampm
 from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDispatcher
 from app.model.dto.medical_inquiry import RouterQuery
-from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT, TIMER_PROMPT, MULTI_QUERY_PROMPT
+from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, MULTI_QUERY_PROMPT
 from app.service._base import BaseService
 
 
@@ -236,7 +236,7 @@ class MedicalInquiryService(BaseService):
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
             ", ".join(self.dental_section_list),
             language) # 통증 부위 목록
-        entity_prompt: str = ENTITY_PROMPT.format(
+        entity_prompt: str = (ENTITY_PROMPT_KO if language == "ko" else ENTITY_PROMPT_EN).format(
             format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
             )
         timer_prompt: str = TIMER_PROMPT.format(
@@ -292,22 +292,22 @@ class MedicalInquiryService(BaseService):
                          | RunnableLambda(lambda x: x[memory.memory_key])
         )
         stage2 = EntityChain(system_prompt=entity_prompt)
-        stage3 = RunnableParallel({
-            "destination": ChatPromptTemplate.from_messages([
+        stage3 = RunnableParallel(
+            destination=ChatPromptTemplate.from_messages([
                             SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
                             MessagesPlaceholder("history"),
                             ("human", "Screened Intents:\n{intent}\nUtterance: {question}")])
                            | self.llm.with_structured_output(RouterQuery)
                            | RunnableLambda(lambda x: x.destination),
-            "context": itemgetter("result")
+            context=itemgetter("result")
                        | self.rag
                        | self._process_context,
-            "question": itemgetter("question"),
-            "intent": itemgetter("intent"),
-            "parsed_intent": itemgetter("parsed_intent"),
-            "history": itemgetter("history"),
-            "language": itemgetter("language")
-        })
+            question=itemgetter("question"),
+            intent=itemgetter("intent"),
+            parsed_intent=itemgetter("parsed_intent"),
+            history=itemgetter("history"),
+            language=itemgetter("language")
+        )
         stage4 = RunnablePassthrough.assign(
             context=RunnableLambda(lambda x: x["context"]["context"]),
             raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),

@@ -5,6 +5,7 @@ from operator import itemgetter
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from optimum.intel.openvino import OVModelForSequenceClassification
+import openvino as ov
 
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_core.prompts.prompt import PromptTemplate
@@ -78,14 +79,21 @@ class VectorStore:
     def _get_embeddings(self):
         # return HuggingFaceEmbeddings(
         #     model_name="BAAI/bge-m3", # dragonkue/BGE-m3-ko
-        #     # model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+        #     # model_kwargs={"device": 'cuda' if torch.cuda.is_available() else 'cpu'}
         #     model_kwargs={"device": "cpu", "backend": "openvino"}
         #     )
         return OpenVINOBgeEmbeddings(
             # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
             # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
             model_name_or_path="BAAI/bge-m3",
-            model_kwargs={'device': 'CPU'},
+            model_kwargs={
+                "device": "cpu",
+                "ov_config":{
+                        ov.properties.hint.inference_precision: ov.Type.bf16,
+                        ov.properties.intel_cpu.denormals_optimization: True,
+                        ov.properties.inference_num_threads: 2,
+                        ov.properties.hint.enable_hyper_threading : True,
+                    }},
             encode_kwargs={'normalize_embeddings': False}
         )
 
@@ -93,14 +101,21 @@ class VectorStore:
         # return CrossEncoderReranker(
         #     model=HuggingFaceCrossEncoder(
         #         model_name="BAAI/bge-reranker-v2-m3", # sridhariyer/bge-reranker-v2-m3-openvino
-        #         model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
+        #         model_kwargs={"device": 'cuda' if torch.cuda.is_available() else 'cpu'}
         #         # model_kwargs={"device": "cpu",}
         #         ),
         #     top_n=2
         #     )
         return CustomOVCrossEncoderReranker(
-            model_name_or_path="sridhariyer/bge-reranker-v2-m3-openvino",
-            model_kwargs={'device': 'CPU'},
+            model_name_or_path="EmbeddedLLM/bge-reranker-v2-m3-int4-sym-ov",
+            model_kwargs={
+                "device": "cpu",
+                "ov_config":{
+                        ov.properties.hint.inference_precision: ov.Type.bf16,
+                        ov.properties.intel_cpu.denormals_optimization: True,
+                        ov.properties.inference_num_threads: 2,
+                        ov.properties.hint.enable_hyper_threading : True,
+                    }},
             top_n=2
         )
     
@@ -122,6 +137,7 @@ class VectorStore:
         except Exception as e:
             print(f"BM25 초기화 중 오류 발생: {e}")
             all_docs = []
+        return all_docs
 
     def _ensure_collection(self):
         """컬렉션이 없으면 생성"""

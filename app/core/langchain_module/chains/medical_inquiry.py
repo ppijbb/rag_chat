@@ -189,21 +189,20 @@ class StepDispatcher(Runnable):
 
         # step1: 문진 진행
         self.chain_step1 = (
-            RunnableParallel({
-                "text": ChatPromptTemplate.from_messages([
+            RunnableParallel(
+                text=ChatPromptTemplate.from_messages([
                              SystemMessage(content=self.system_prompt),
                              MessagesPlaceholder("history"),
                              ("human", "Contexts:\n{context}\n\n"
                                        "Screened Intents:\n{intent}\n"
                                        "Utterance: {question}\n"
                                        "Language: {language}\n"
-                                       "Processing State: step1")
-                        ])
-                        | self.llm
-                        | StrOutputParser(),
-                "screening": itemgetter("intent")
-                             | RunnableLambda(lambda x: x.content)
-            })
+                                       "Processing State: step1") ])
+                    | self.llm
+                    | StrOutputParser(),
+                screening=itemgetter("intent")
+                          | RunnableLambda(lambda x: x.content)
+            )
         )
 
         # step2: 치료 방법 제시
@@ -248,8 +247,8 @@ class StepDispatcher(Runnable):
 
         # step3: 예상 시간 계산
         self.chain_step3 = (
-            RunnableParallel({
-                "text": ChatPromptTemplate.from_messages([
+            RunnableParallel(
+                text=ChatPromptTemplate.from_messages([
                              SystemMessage(content=self.system_prompt),
                              MessagesPlaceholder("history"),
                              ("human", "Contexts:\n{context}\n\n"
@@ -257,12 +256,12 @@ class StepDispatcher(Runnable):
                                        "Utterance: {question}\n"
                                        "Language: {language}\n"
                                        "Processing State: step2")])
-                        | self.llm
-                        | StrOutputParser(),
-                "screening": itemgetter("intent")
-                             | RunnableLambda(lambda x: x.content),
-                "treatment": itemgetter("raw_treatment")
-            })
+                     | self.llm
+                     | StrOutputParser(),
+                screening=itemgetter("intent")
+                          | RunnableLambda(lambda x: x.content),
+                treatment=itemgetter("raw_treatment")
+            )
         )
 
     def invoke(self, input: dict, config: dict = None, **kwargs):

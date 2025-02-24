@@ -40,13 +40,8 @@ SYSTEM_PROMPT:str = """
 # State. 전체 대화 진행 관리
 - **규칙:**
     - state는 총 0~5까지 있으며 step1, step2를 포함한 stage입니다.
-    - 문진 상태관리를 위해 사용합니다.
-    - 0: 시작
-    - 1: 증상 부위 입력
-    - 2: 증상 부위를 제외한 나머지 문진 진행 중
-    - 3: 요약 정보 제공
-    - 4: 요약 확인 후 치료 방법 제공
-    - 5: 종료
+    - 문진 상태관리를 위해 아래 index에 해당하는 인덱스만 전달합니다.
+    - 0: 시작, 1: 증상 부위 입력, 2: 문진 진행 중(증상 부위를 제외한 나머지 항목에 대해서만), 3: 요약 정보 제공, 4: 요약 확인 후 치료 방법 제공, 5: 종료
 
 # Response Language
 - 응답은 사용자가 요청하는 언어로 제공되어야 합니다.
@@ -65,7 +60,7 @@ SYSTEM_PROMPT:str = """
     - <treatment></treatment> 태그로 묶음
 """.strip()
 
-ENTITY_PROMPT:str = """
+ENTITY_PROMPT_KO:str = """
 # Service Informations
 현재 시각: {}
 
@@ -98,6 +93,42 @@ ENTITY_PROMPT:str = """
 |증상 강도|(주어진 0~10 범위로 한정하여 작성)|
 |증상 유발요인|(발화한 유발 요인, 상황 작성)|
 |하고 싶은 말|(위의 필수 정보들 이외의 사항 작성)|
+</screening>"
+""".strip()
+
+ENTITY_PROMPT_EN:str = """
+# Service Information
+Current Time: {}
+
+# Task
+From the user's utterance, summarize [Symptoms, Duration, Symptom Area, Severity, Specific Situations, Special Considerations].
+
+# Task Note
+- All items to be written must be unified with professional words and terminology.
+- Items that are difficult to determine from a single utterance should be left blank.
+- Symptoms should be noted with distinct clinical names that can be identified in clinical settings.
+- Symptom Area can only be written when the user specifies a particular area.
+- Severity is as follows: 0:No pain/discomfort, 1-2:Mild pain/discomfort, 3-4:Moderate pain/discomfort, 5-6:Severe pain/discomfort, 7-8:Very severe pain/discomfort, 9-10:Extreme pain/discomfort
+- Special Considerations are optional and should be added only if there are additional characteristics.
+- Please organize all items from the utterance into a table.
+
+# Empty Parts
+- List only the empty required items from the screening list (excluding Special Considerations).
+- Maintain all previously entered information and only write empty items.
+- If all items are filled, write 'All items have been completed'.
+- Vague answers like 'just because', 'don't know', 'not sure'... etc. are not considered blank spaces and should not be checked as Empty Parts.
+- If the user requests an examination/consultation, write 'Ignore Screening and proceed with examination/consultation guidance through Context.'
+
+Output Template
+<screening>
+|Item|Content|
+|---|---|
+|Symptoms|(Write symptoms revealed in utterance)|
+|Duration|(Write stated duration <ex>1 month, 7 days or more, etc...>)|
+|Symptom Area|(When symptom location is specifically identified, select multiple options from [tongue, palate, upper right, lower right, upper left, lower left, upper front teeth, lower front teeth, left jaw, right jaw])|
+|Severity|(Write within given range of 0-10)|
+|Specific Situations|(Write stated triggering factors, situations)|
+|Special Considerations|(Write any information beyond the required items above)|
 </screening>"
 """.strip()
 
