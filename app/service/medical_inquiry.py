@@ -75,7 +75,7 @@ class MedicalInquiryService(BaseService):
         memory_key:str="history"
     ) -> Dict[str, str]:
         start = time.time()
-        rag_chain = self.get_rag_chain(
+        rag_chain = self.get_service_chain(
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
                     messages=self._get_user_history(
@@ -108,7 +108,7 @@ class MedicalInquiryService(BaseService):
         state:int,
         memory_key:str="history"
     ) -> AsyncIterator:
-        rag_chain = self.get_rag_chain(
+        rag_chain = self.get_service_chain(
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
                     messages=self._get_user_history(
@@ -226,7 +226,7 @@ class MedicalInquiryService(BaseService):
         }
 
     # Initialize RAG chain
-    def get_rag_chain(
+    def get_service_chain(
         self,
         memory: ConversationBufferMemory,
         language: str,

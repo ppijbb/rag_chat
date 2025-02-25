@@ -36,7 +36,7 @@ class BaseService(ABC):
                 db["history"] += [data]
 
     @abstractmethod
-    def get_rag_chain(
+    def get_service_chain(
         self,
         vectorstore: VectorStore, 
         memory: ConversationBufferMemory
