@@ -10,10 +10,6 @@ class ChatRequest(BaseModel):
     text: str = Field(...)
     lang: Optional[str] = Field(default="ko", description="ko: 한국어, en: 영어")
 
-    class Config:
-        from_attributes = True
-        extra = 'allow'  # 정의되지 않은 속성 허용
-
 
 class ChatResponse(BaseModel):
     text: str
