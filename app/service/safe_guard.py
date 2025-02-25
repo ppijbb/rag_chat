@@ -33,20 +33,12 @@ class GaurdService(BaseService):
                 # ('prompt guard3', LMTextClassifier(
                 #     model="Niansuh/Prompt-Guard-86M",
                 #     device=device,
+                #     label_classes=label_classes)),
+                # ('prompt guard4', LMTextClassifier(
+                #     model="xabiman12/fine_tuned_prompt_guard",
+                #     device=device,
                 #     label_classes=label_classes))
-                ('prompt guard1', LMTextClassifier(
-                    model=DiserializedOVModelForSequenceClassification.from_pretrained( # pg
-                        model_id="meta-llama/Prompt-Guard-86M", 
-                        device_map=device,
-                        low_cpu_mem_usage=True,
-                        load_in_4bit=True,
-                        trust_remote_code=True),
-                    tokenizer=AutoTokenizer.from_pretrained(
-                        pretrained_model_name_or_path="meta-llama/Prompt-Guard-86M",
-                        trust_remote_code=True),
-                    device=device,
-                    label_classes=label_classes))
-                ('arch guard', LMTextClassifier(
+                ('arch guard2', LMTextClassifier(
                     model=DiserializedOVModelForSequenceClassification.from_pretrained( # ag
                         model_id=model_name,
                         device_map=device,

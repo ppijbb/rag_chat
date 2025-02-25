@@ -20,8 +20,8 @@ router = APIRouter()
 # @serve.ingress(app=router)
 class FollowupCareRouterIngress(BaseIngress):
     routing = True
-    prefix = "/medical_inquiry"
-    tags = ["Medical Inquiry"]
+    prefix = "/followup_care"
+    tags = ["Follow Up Care"]
     include_in_schema = True
     
     def __init__(

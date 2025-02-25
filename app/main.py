@@ -14,8 +14,8 @@ from app.api.controller import MedicalInquiryRouterIngress
 from app.service.medical_inquiry import MedicalInquiryService
 
 from app.core.lifespan import service_lifecycle
+from app.core.middleware import ChatGaurdMiddleware
 from app.core.langchain_module.llm import DDG_LLM
-
 
 app = FastAPI(
     title="Dencomm Medical Inquiry API",
@@ -32,7 +32,8 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"])
-
+app.add_middleware(
+    ChatGaurdMiddleware)  # 제외할 경로 지정
 
 @serve.deployment(
     placement_group_bundles=[{

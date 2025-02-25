@@ -12,7 +12,7 @@ sys.setrecursionlimit(10**7)
 sys.set_int_max_str_digits(0)
 
 
-class CustomVotingClassifier(VotingClassifier):
+class GuardVotingClassifier(VotingClassifier):
 
     def predict(self, X):
         """Predict class labels for X.
@@ -47,13 +47,14 @@ class CustomVotingClassifier(VotingClassifier):
         return maj
 
 
-class LMTextClassifier(BaseEstimator, ClassifierMixin):
+class LMTextClassifier(ClassifierMixin, BaseEstimator):
     def __init__(
         self, 
         model: Union[str, PreTrainedModel, Pipeline], 
         label_classes: List, 
-        device:str, **kwargs
-        ):
+        device:str, 
+        **kwargs
+    ):
         """
         Transformers 파이프라인을 Scikit-learn 분류기로 래핑.
 
