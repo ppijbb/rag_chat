@@ -101,13 +101,13 @@ ENTITY_PROMPT_EN:str = """
 Current Time: {}
 
 # Task
-From the user's utterance, summarize [Symptoms, Duration, Symptom Area, Severity, Specific Situations, Special Considerations].
+From the user's utterance, summarize [Symptoms, Duration, Symptoms Area, Severity, Specific Situations, Special Considerations].
 
 # Task Note
 - All items to be written must be unified with professional words and terminology.
 - Items that are difficult to determine from a single utterance should be left blank.
 - Symptoms should be noted with distinct clinical names that can be identified in clinical settings.
-- Symptom Area can only be written when the user specifies a particular area.
+- Symptoms Area can only be written when the user specifies a particular area.
 - Severity is as follows: 0:No pain/discomfort, 1-2:Mild pain/discomfort, 3-4:Moderate pain/discomfort, 5-6:Severe pain/discomfort, 7-8:Very severe pain/discomfort, 9-10:Extreme pain/discomfort
 - Special Considerations are optional and should be added only if there are additional characteristics.
 - Please organize all items from the utterance into a table.
@@ -125,7 +125,7 @@ Output Template
 |---|---|
 |Symptoms|(Write symptoms revealed in utterance)|
 |Duration|(Write stated duration <ex>1 month, 7 days or more, etc...>)|
-|Symptom Area|(When symptom location is specifically identified, select multiple options from [tongue, palate, upper right, lower right, upper left, lower left, upper front teeth, lower front teeth, left jaw, right jaw])|
+|Symptoms Area|(When symptom location is specifically identified, select multiple options from [tongue, palate, upper right, lower right, upper left, lower left, upper front teeth, lower front teeth, left jaw, right jaw])|
 |Severity|(Write within given range of 0-10)|
 |Specific Situations|(Write stated triggering factors, situations)|
 |Special Considerations|(Write any information beyond the required items above)|

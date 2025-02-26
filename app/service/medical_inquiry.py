@@ -206,23 +206,23 @@ class MedicalInquiryService(BaseService):
         step_output
     ) -> Dict[str, str]:
         result, category = [], []
-        start = time.time()
-        self.service_logger.warning(f"rag step output {step_output}")
-        for doc in step_output:
+        language = step_output["language"]
+        self.service_logger.warning(f"rag step output {step_output['rag']}")
+        for doc in step_output['rag']:
             source_data = doc.page_content.strip()
+            doc.metadata["치료"] = doc.metadata.get(f"치료_{language}")
             metadata_text = "\n".join([
                 f"{k}: {v}"
                 for k, v in doc.metadata.items()
                 if k not in ["_id", "_collection_name"]])
-            if doc.metadata.get("치료") not in category:
-                category.append(doc.metadata.get("치료"))
+            if doc.metadata.get(f"치료") not in category:
+                category.append(doc.metadata.get(f"치료"))
                 result.append(f"Case {len(category)}\n"
                               f"유사 사례: {source_data}\n"
                               f"{metadata_text}")
-        self.service_logger.info(f"Context processing took {time.time()-start}")
         return {
             "context": "\n\n".join(result),
-            "raw_context": step_output
+            "raw_context": step_output["rag"]
         }
 
     # Initialize RAG chain
@@ -247,25 +247,25 @@ class MedicalInquiryService(BaseService):
         #              chat_history=RunnableLambda(memory.load_memory_variables)
         #                           | RunnableLambda(lambda x: x[memory.memory_key]))
         #         | EntityChain(system_prompt=entity_prompt)
-        #         | RunnableParallel({ 
-        #             # 라우팅 프롬프트 체인을 구성하여, destination 값을 추출합니다.
-        #             "destination": ChatPromptTemplate.from_messages([  
-        #                             # 새로운 라우터 체인: route_chain과 기존의 키들을 합쳐서 dispatcher에 전달합니다.
-        #                            SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
-        #                            MessagesPlaceholder("history"),
-        #                            ("human", "Screened Intents:\n"
-        #                                      "{intent}\n"
-        #                                      "Utterance: {question}") ])
-        #                            | self.llm.with_structured_output(RouterQuery)
-        #                            | RunnableLambda(lambda x: x.destination),
-        #             "context": itemgetter("result")
-        #                        | self.rag
-        #                        | self._process_context,
-        #             "question": itemgetter("question"),
-        #             "intent": itemgetter("intent"),
-        #             "parsed_intent": itemgetter("parsed_intent"),
-        #             "history": itemgetter("history"),
-        #             "language": itemgetter("language")})
+        #         | RunnableParallel(
+        #                 destination=ChatPromptTemplate.from_messages([
+        #                                 SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+        #                                 MessagesPlaceholder("history"),
+        #                                 ("human", "Screened Intents:\n{intent}\nUtterance: {question}")])
+        #                             | self.llm.with_structured_output(RouterQuery)
+        #                             | RunnableLambda(lambda x: x.destination),
+        #                 context={
+        #                     "rag": itemgetter("result")
+        #                            | self.rag, 
+        #                     "language": itemgetter("language")
+        #                     }
+        #                     | self._process_context,
+        #                 question=itemgetter("question"),
+        #                 intent=itemgetter("intent"),
+        #                 parsed_intent=itemgetter("parsed_intent"),
+        #                 history=itemgetter("history"),
+        #                 language=itemgetter("language")
+        #             )
         #         | RunnablePassthrough.assign(
         #             context=RunnableLambda(lambda x: x["context"]["context"]),
         #             raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
@@ -297,11 +297,13 @@ class MedicalInquiryService(BaseService):
                             SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
                             MessagesPlaceholder("history"),
                             ("human", "Screened Intents:\n{intent}\nUtterance: {question}")])
-                           | self.llm.with_structured_output(RouterQuery)
-                           | RunnableLambda(lambda x: x.destination),
-            context=itemgetter("result")
-                       | self.rag
-                       | self._process_context,
+                        | self.llm.with_structured_output(RouterQuery)
+                        | RunnableLambda(lambda x: x.destination),
+            context=RunnablePassthrough.assign(
+                        rag=itemgetter("result")
+                            | self.rag, 
+                        language=itemgetter("language"))
+                    | self._process_context,
             question=itemgetter("question"),
             intent=itemgetter("intent"),
             parsed_intent=itemgetter("parsed_intent"),

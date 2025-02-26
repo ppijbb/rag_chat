@@ -15,7 +15,7 @@ class EntityChain(Runnable):
     def __init__(self, system_prompt: str):
         self.llm = get_llm()
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
+            SystemMessage(content=system_prompt),
             MessagesPlaceholder("history"),
             ("user", "Utterance: {question}")
         ])
@@ -57,14 +57,12 @@ class EntityChain(Runnable):
     
     def invoke(self, input, config, **kwargs):
         # 입력 데이터를 처리하는 로직 구현
-        start = time.time()
         history = input.get("chat_history", [])
         question = input.get("question", "")
         intent = self.chain.invoke({
             "history": history,
             "question": question
         })
-        print(f"Elapsed time: {time.time() - start}")
         return {
             "result": f"{' '.join([his.content for his in history if his.type=='human'])} {question}", 
             "intent": intent,
@@ -151,11 +149,12 @@ class TimerChain(Runnable):
         answers = input.get("answers", [])
         raw_context = input.get("raw_context", [])
         intents = input.get("parsed_intent", {})
+        language = input.get("language", "ko")
         treatment_data = {}
         for treat in raw_context:
             print(treat)
-            if any([a for a in answers if a in treat.metadata["치료"]]):
-                treatment_data[treat.metadata["치료"]] = {
+            if any([a for a in answers if a in treat.metadata[f"치료_{language}"]]):
+                treatment_data[treat.metadata[f"치료_{language}"]] = {
                     "time": treat.metadata["소요 시간"],
                     "diagnosis": treat.metadata["증상"]
                     }
@@ -191,13 +190,13 @@ class StepDispatcher(Runnable):
         self.chain_step1 = (
             RunnableParallel(
                 text=ChatPromptTemplate.from_messages([
-                             SystemMessage(content=self.system_prompt),
-                             MessagesPlaceholder("history"),
-                             ("human", "Contexts:\n{context}\n\n"
-                                       "Screened Intents:\n{intent}\n"
-                                       "Utterance: {question}\n"
-                                       "Language: {language}\n"
-                                       "Processing State: step1") ])
+                        SystemMessage(content=self.system_prompt),
+                        MessagesPlaceholder("history"),
+                        ("human", "Contexts:\n{context}\n\n"
+                                  "Screened Intents:\n{intent}\n"
+                                  "Utterance: {question}\n"
+                                  "Language: {language}\n"
+                                  "Processing State: step1") ])
                     | self.llm
                     | StrOutputParser(),
                 screening=itemgetter("intent")
@@ -209,20 +208,20 @@ class StepDispatcher(Runnable):
         self.chain_step2 = (
             RunnablePassthrough.assign(
                 answers=ChatPromptTemplate.from_messages([  
-                        # 필요한 치료 방법만 선택하는 프롬프트
-                        SystemMessage(
-                            content="Contexts를 참고하여 현재 가장 필요한 치료 방법을 선택하세요. "
-                                    "서로 다른 치료 방법이 적용되야 하는 경우에만 다중 선택 가능합니다. "
-                                    "같은 치료 방법이라면 더 적절한 것 하나만 선택해야합니다."),
-                        MessagesPlaceholder("history"),
-                        ("human", "Contexts:\n{context}\n\n"
-                                  "Screened Intents:\n{intent}\n"
-                                  "Utterance: {question}\n"
-                                  "Processing State: step2\n"
-                                  "---\n"
-                                  "answers:[{raw_treatment}]") ])
-                        | self.llm.with_structured_output(TreatmentQuery)
-                        | RunnableLambda(lambda x: list(set(x.answers))))
+                    # 필요한 치료 방법만 선택하는 프롬프트
+                    SystemMessage(
+                        content="Contexts를 참고하여 현재 가장 필요한 치료 방법을 선택하세요. "
+                                "서로 다른 치료 방법이 적용되야 하는 경우에만 다중 선택 가능합니다. "
+                                "같은 치료 방법이라면 더 적절한 것 하나만 선택해야합니다."),
+                    MessagesPlaceholder("history"),
+                    ("human", "Contexts:\n{context}\n\n"
+                              "Screened Intents:\n{intent}\n"
+                              "Utterance: {question}\n"
+                              "Processing State: step2\n"
+                              "---\n"
+                              "answers:[{raw_treatment}]") ])
+                    | self.llm.with_structured_output(TreatmentQuery)
+                    | RunnableLambda(lambda x: list(set(x.answers))))
             | RunnablePassthrough.assign(
                 text=RunnablePassthrough()
                      | TimerChain() # 시간 계산 chain
@@ -249,13 +248,13 @@ class StepDispatcher(Runnable):
         self.chain_step3 = (
             RunnableParallel(
                 text=ChatPromptTemplate.from_messages([
-                             SystemMessage(content=self.system_prompt),
-                             MessagesPlaceholder("history"),
-                             ("human", "Contexts:\n{context}\n\n"
-                                       "Screened Intents:\n{intent}\n"
-                                       "Utterance: {question}\n"
-                                       "Language: {language}\n"
-                                       "Processing State: step2")])
+                        SystemMessage(content=self.system_prompt),
+                        MessagesPlaceholder("history"),
+                        ("human", "Contexts:\n{context}\n\n"
+                                  "Screened Intents:\n{intent}\n"
+                                  "Utterance: {question}\n"
+                                  "Language: {language}\n"
+                                  "Processing State: step2")])
                      | self.llm
                      | StrOutputParser(),
                 screening=itemgetter("intent")

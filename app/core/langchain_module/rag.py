@@ -187,7 +187,7 @@ class VectorStore:
         """텍스트로 유사한 문서 검색"""
         try:
             search_vector = self.embeddings.embed_query(query)
-            results = self.client.search(
+            results = self.client.query_points(
                 collection_name=self.collection_name,
                 query_vector=search_vector,
                 limit=limit,
