@@ -15,6 +15,7 @@ class ChatResponse(BaseModel):
     text: str
     screening: Optional[List[Dict[str, str | None]]] # 데이터 처리 고려한 Obejct List 타입으로 전달 
     treatment: Optional[List[str]]
+    treatment_time: Optional[int] = Field(default=None, description="치료 시간(분)")
     language: Optional[Languagecode] = Field(default=Languagecode.ko, description="ko: 한국어, en: 영어", exclude=True)
 
     class Config:

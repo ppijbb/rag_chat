@@ -166,7 +166,8 @@ class TimerChain(Runnable):
                       f"예상되는 진료는 {treatment_message} 이며, 진료 시간은 {treatment_time_message} 으로 예상됩니다.\n"
                        "*위 결과는 증상에 따라 예상되는 진료 및 요약이며 의학적인 진단이 아닙니다. "
                        "요약 시 누락이나 오역이 있을 수 있으며, "
-                       "실제 치료 내용과 시간은 방사선 촬영 및 의료진의 진료에 따라 달라질 수 있습니다."})
+                       "실제 치료 내용과 시간은 방사선 촬영 및 의료진의 진료에 따라 달라질 수 있습니다.",
+            "treatment_time": treatment_rule["total"]})
         # print(input["context"])
         return {
             **input
@@ -225,6 +226,8 @@ class StepDispatcher(Runnable):
             | RunnablePassthrough.assign(
                 text=RunnablePassthrough()
                      | TimerChain() # 시간 계산 chain
+                     | RunnablePassthrough.assign(
+                         treatment_time=itemgetter("treatment_time"))
                      | ChatPromptTemplate.from_messages([
                         SystemMessage(content=self.system_prompt),
                         MessagesPlaceholder("history"),
@@ -237,10 +240,12 @@ class StepDispatcher(Runnable):
                      | StrOutputParser(),
                 screening=itemgetter("intent")
                           | RunnableLambda(lambda x: x.content))
+            | RunnablePassthrough()
             |{
                 "text" : itemgetter("text"),
                 "screening": itemgetter("screening"),
-                "treatment": itemgetter("answers")
+                "treatment": itemgetter("answers"),
+                "treatment_time": itemgetter("treatment_time")
             }
         )
 
