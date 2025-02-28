@@ -223,11 +223,9 @@ class StepDispatcher(Runnable):
                               "answers:[{raw_treatment}]") ])
                     | self.llm.with_structured_output(TreatmentQuery)
                     | RunnableLambda(lambda x: list(set(x.answers))))
-            | RunnablePassthrough.assign(
+            | TimerChain()
+            | RunnableParallel(
                 text=RunnablePassthrough()
-                     | TimerChain() # 시간 계산 chain
-                     | RunnablePassthrough.assign(
-                         treatment_time=itemgetter("treatment_time"))
                      | ChatPromptTemplate.from_messages([
                         SystemMessage(content=self.system_prompt),
                         MessagesPlaceholder("history"),
@@ -239,14 +237,9 @@ class StepDispatcher(Runnable):
                      | self.llm
                      | StrOutputParser(),
                 screening=itemgetter("intent")
-                          | RunnableLambda(lambda x: x.content))
-            | RunnablePassthrough()
-            |{
-                "text" : itemgetter("text"),
-                "screening": itemgetter("screening"),
-                "treatment": itemgetter("answers"),
-                "treatment_time": itemgetter("treatment_time")
-            }
+                          | RunnableLambda(lambda x: x.content),
+                treatment_time=itemgetter("treatment_time"),
+                treatment= itemgetter("answers"))
         )
 
         # step3: 예상 시간 계산
