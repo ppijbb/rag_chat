@@ -5,38 +5,64 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from starlette.requests import Request
 from starlette.responses import Response
 from app.service.safe_guard import GaurdService
+from app.core.logging import get_logger
 
-logger = logging.getLogger("app.core.middleware")
 
 class ChatGaurdMiddleware(BaseHTTPMiddleware, GaurdService):
     """
     Custom FastAPI middleware that logs incoming requests,
     measures processing time, and appends a custom header to responses.
     """
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    logger = get_logger()
+
+    async def dispatch(
+            self, 
+            request: Request, 
+            call_next: RequestResponseEndpoint
+        ) -> Response:
         start_time = time.time()
-        logger.info(f"Incoming request: {request.method} {request.url.path}")
+        self.logger.info(f"Incoming request: {request.method} {request.url.path}")
         
         # Read and parse the request body
         body = await request.body()
         try:
-            data = json.loads(body)
-            text = data.get("text", "")
-            
-            # Use GaurdService to predict
-            prediction = self.model.predict([text])[0]
-            data["prediction"] = prediction
-            
-            # Create a new request with the modified body
-            new_body = json.dumps(data).encode("utf-8")
+            if request.method == "GET":
+                new_body = body
+            else:
+                data = json.loads(body)
+                text = data.get("text", "")
+                
+                # Use GaurdService to predict
+                prediction = self.model.predict([text])[0]
+                data["prediction"] = prediction
+                
+                # Create a new request with the modified body
+                new_body = json.dumps(data).encode("utf-8")
             request = Request(request.scope, receive=lambda: new_body)
             
             response = await call_next(request)
         except Exception as exc:
-            logger.exception("Error while processing request")
+            self.logger.exception("Error while processing request")
             return Response("Internal Server Error", status_code=500)
         
         process_time = time.time() - start_time
         response.headers["X-Process-Time"] = f"{process_time:.3f}"
-        logger.info(f"Completed {request.method} {request.url.path} in {process_time:.3f}s")
+        
+        response_body = b''
+        async for chunk in response.body_iterator:
+            response_body += chunk
+
+        # 원본 응답의 상태를 유지하기 위해 body_iterator를 재설정
+        async def new_body_iterator():
+            yield response_body
+        response.body_iterator = new_body_iterator()
+
+        self.logger.info(f"[api log] Response status code: {response.status_code}")
+        self.logger.info(f"[api log] Completed {request.method} {request.url.path} from {request.client.host} in {process_time:.3f}s")
+        self.logger.info(f"[api log] Request headers: {request.headers}")
+        self.logger.info(f"[api log] Request body: {new_body.decode()}")
+        self.logger.info(f"[api log] Response headers: {response.headers}")
+        self.logger.info(f"[api log] Response body: {response_body.decode()}")
+        self.logger.info(f"[api log] ----------------------------------------")
+
         return response
