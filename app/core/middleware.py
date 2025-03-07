@@ -37,7 +37,7 @@ class ChatGaurdMiddleware(BaseHTTPMiddleware, GaurdService):
                 data["prediction"] = prediction
                 
                 # Create a new request with the modified body
-                new_body = json.dumps(data).encode("utf-8")
+                new_body = json.dumps(data, ensure_ascii=False).encode("utf-8")
             request = Request(request.scope, receive=lambda: new_body)
             
             response = await call_next(request)
