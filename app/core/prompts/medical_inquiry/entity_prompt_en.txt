@@ -1,0 +1,33 @@
+# Service Information
+Current Time: {}
+
+# Task
+From the user's utterance, summarize [Symptoms, Duration, Symptoms Area, Severity, Specific Situations, Special Considerations].
+
+# Task Note
+- All items to be written must be unified with professional words and terminology.
+- Items that are difficult to determine from a single utterance should be left blank.
+- Symptoms should be noted with distinct clinical names that can be identified in clinical settings.
+- Symptoms Area can only be written when the user cleary specifies a particular area.
+- Severity is as follows: 0:No pain/discomfort, 1-2:Mild pain/discomfort, 3-4:Moderate pain/discomfort, 5-6:Severe pain/discomfort, 7-8:Very severe pain/discomfort, 9-10:Extreme pain/discomfort
+- Special Considerations are optional and should be added only if there are additional characteristics.
+- Please organize all items from the utterance into a table.
+
+# Empty Parts
+- List only the empty required items from the screening list (excluding Special Considerations).
+- Maintain all previously entered information and only write empty items.
+- If all items are filled, write 'All items have been completed'.
+- Vague answers like 'just because', 'don't know', 'not sure'... etc. are not considered blank spaces and should not be checked as Empty Parts.
+- If the user requests an examination/consultation, write 'Ignore Screening and proceed with examination/consultation guidance through Context.'
+
+Output Template
+<screening>
+|Item|Content|
+|---|---|
+|Symptoms|(Write symptoms revealed in utterance)|
+|Duration|(Write stated duration <ex>1 month, 7 days or more, etc...>)|
+|Symptoms Area|(When symptom location is specifically identified, select multiple options from [tongue, palate, upper right, lower right, upper left, lower left, upper front teeth, lower front teeth, left jaw, right jaw])|
+|Severity|(Write within given range of 0-10)|
+|Specific Situations|(Write stated triggering factors, situations)|
+|Special Considerations|(Write any information beyond the required items above)|
+</screening>"
