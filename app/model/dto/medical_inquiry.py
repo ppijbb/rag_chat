@@ -6,7 +6,7 @@ from app.model.enum.language import Languagecode
 
 class ChatRequest(BaseModel):
     uid: str = Field(...)
-    state: int = Field(..., description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 4: 치료 방법, 5: 종료")
+    state: int = Field(..., description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
     text: str = Field(...)
     lang: Optional[str] = Field(default="ko", description="ko: 한국어, en: 영어")
 
@@ -96,7 +96,7 @@ class ChatResponse(BaseModel):
             values["screening"] = [{"label": k, "content": v} for k, v in result.items()]
             return values
 
-    @computed_field(description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 4: 치료 방법, 5: 종료")
+    @computed_field(description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
     def state(
         self
     ) -> int:
