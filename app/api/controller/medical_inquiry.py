@@ -5,7 +5,7 @@ import time
 import traceback
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse, Response
+from fastapi.responses import StreamingResponse, Response, JSONResponse
 
 from ray import serve
 
@@ -70,13 +70,18 @@ class MedicalInquiryRouterIngress(BaseIngress):
         async def medical_inquiry_chat(
             request: ChatRequest,
         ) -> ChatResponse:
-            result = {"text": "", "screening": None, "treatment": None}
+            result = {
+                "text": "", 
+                "screening": None, 
+                "treatment": None
+            }
             # Generate predicted tokens
             try:
                 # ----------------------------------- #
                 st = time.time()
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
+                self.server_logger.warning("`````````````` this is test log ,,,,,,,,,,,,,,,,,,,,,")
                 chain_result = await self.service.inquiry_chat.remote(
                     # self=self._get_class(),
                     text=request.text,
@@ -89,15 +94,21 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 end = time.time()
                 # ----------------------------------- #
                 assert len(result) > 0, "Generation failed"
+                status_code = 200
                 print(f"Time: {end - st}")
             except AssertionError as e:
-                self.server_logger.error("validation error" + e)
-                result["text"] = e
+                self.server_logger.error(f"!!! data validation error !!! {e}")
+                result["text"] = str(e)
+                status_code = 501
             except Exception as e:
-                self.server_logger.error("unkwon error" + e)
+                self.server_logger.error(f"!!! unkwon error !!! {e}")
                 result["text"] = "Generation failed"
+                status_code = 500
             finally:
-                return ChatResponse(**result)
+                return JSONResponse(
+                    status_code=status_code, 
+                    content=ChatResponse(**result).model_dump()
+                )
 
         @router.post(
             "/chat/stream",
