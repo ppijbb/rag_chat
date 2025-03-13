@@ -41,7 +41,7 @@ lq.add_text(
         }
     )
 lq.add_text(
-    text="통증이 어떤 상황에서 더 심해지나요?", 
+    text="증상의 강도가 얼마나 심하신가요요?", 
     collection_name="state_control", 
     metadata={
         "state": 2,
