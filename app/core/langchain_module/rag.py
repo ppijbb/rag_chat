@@ -144,6 +144,7 @@ class VectorStore:
         try:
             self.client.get_collection(self.collection_name)
         except Exception:
+            print(f"Creating collection {self.collection_name}...")
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(
@@ -152,7 +153,7 @@ class VectorStore:
                 )
             )
 
-    def add_text(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    def add_text(self, text: str, collection_name:str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """텍스트를 벡터로 변환하여 저장"""
         if not text.strip():
             return False
@@ -165,7 +166,7 @@ class VectorStore:
             if metadata:
                 _metadata.update(metadata)
             self.client.upsert(
-                collection_name=self.collection_name,
+                collection_name=collection_name,
                 points=[
                     models.PointStruct(
                         id=uuid.uuid4().hex,
@@ -183,12 +184,12 @@ class VectorStore:
             print(f"Error adding text: {e}")
             return False
 
-    def search(self, query: str, limit: int = 50) -> List[Dict]:
+    def search(self, query: str, collection_name:str, limit: int = 50) -> List[Dict]:
         """텍스트로 유사한 문서 검색"""
         try:
             search_vector = self.embeddings.embed_query(query)
             results = self.client.query_points(
-                collection_name=self.collection_name,
+                collection_name=collection_name,
                 query_vector=search_vector,
                 limit=limit,
                 score_threshold=0.3

@@ -81,7 +81,6 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 st = time.time()
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
-                self.server_logger.warning("`````````````` this is test log ,,,,,,,,,,,,,,,,,,,,,")
                 chain_result = await self.service.inquiry_chat.remote(
                     # self=self._get_class(),
                     text=request.text,
