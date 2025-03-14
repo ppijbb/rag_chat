@@ -1,8 +1,11 @@
 import re
-from typing import Optional, List, Literal, Dict, Union
+from typing import Optional, List, Literal, Dict, Union, Any, Callable
 from pydantic import BaseModel, Field, computed_field, model_validator, field_validator
 
+from app.core.logging import get_logger
 from app.model.enum.language import Languagecode
+
+logger = get_logger()
 
 class ChatRequest(BaseModel):
     uid: str = Field(...)
@@ -13,6 +16,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text: str
+    state: int = Field(default=0, description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
     screening: Optional[List[Dict[str, str | None]]] # 데이터 처리 고려한 Obejct List 타입으로 전달 
     treatment: Optional[List[str]]
     treatment_time: Optional[int] = Field(default=None, description="치료 시간(분)")
@@ -96,13 +100,23 @@ class ChatResponse(BaseModel):
             values["screening"] = [{"label": k, "content": v} for k, v in result.items()]
             return values
 
-    @computed_field(description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
-    def state(
-        self
-    ) -> int:
-        tag_pattern = re.compile(r'<state>(.*?)</state>', re.DOTALL)
-        match = tag_pattern.search(self._original_text)
-        return 0 if not match else int(match.group(1).strip())
+    # @computed_field(description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
+    # def state(
+    #     self
+    # ) -> int:
+    #     tag_pattern = re.compile(r'<state>(.*?)</state>', re.DOTALL)
+    #     match = tag_pattern.search(self._original_text)
+    #     return 0 if not match else int(match.group(1).strip())
+    
+    @field_validator("state", mode="after")
+    @classmethod
+    def check_text(
+        cls, 
+        value: str
+    ) -> str:
+        state = cls.state_func(cls.text, "state_control", 1)[0]
+        cls.state_func = None
+        return state.pop().metadata["state"] if state else 3
 
 
 class RouterQuery(BaseModel):

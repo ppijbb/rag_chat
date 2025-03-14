@@ -193,7 +193,7 @@ class VectorStore:
                 query=search_vector,
                 limit=limit,
                 score_threshold=0.3
-            )
+            ).points
             return [{
                 "text": result.payload["page_content"],
                 "metadata": result.payload["metadata"],

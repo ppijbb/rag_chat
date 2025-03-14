@@ -91,13 +91,6 @@ class MedicalInquiryService(BaseService):
                 "question": text,
                 "language": language
             })
-        result.update({
-            "state": self.vectorstore.search(
-                text=result["text"],
-                collection_name="state_control",
-                limit=1
-                )
-            })
         self.service_logger.info(f"chain run takes {time.time()-start}")
         await self._add_user_history( # 채팅 기록 저장
             memory_key=memory_key,
@@ -107,6 +100,16 @@ class MedicalInquiryService(BaseService):
                 AIMessage(content=result["text"].strip())
             ])
         return result
+
+    async def get_state(
+        self,
+        text:str
+    ) -> int:
+        state = self.vectorstore.search(
+            query=text,
+            collection_name="state_control",
+            limit=1)
+        return state.pop().get("metadata").get("state") if state else 3
 
     async def inquiry_stream(
         self,
