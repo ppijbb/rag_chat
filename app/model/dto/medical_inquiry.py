@@ -34,17 +34,14 @@ class ChatResponse(BaseModel):
     ) -> str:
         cls._original_text = value
         if "<treatment>" in value:
-            logger.info("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
             tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
             match = tag_pattern.search(value)
             return match.group(1).strip()
         elif "<question>" in value:
-            logger.info("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
             tag_pattern = re.compile(r'<question>(.*?)</question>', re.DOTALL)
             match = tag_pattern.search(value)
             return match.group(1).strip()
         else:
-            logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return value
 
     @model_validator(mode="before")
