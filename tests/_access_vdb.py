@@ -14,6 +14,26 @@ lq = LocalQdrant(collection_name="state_control")
 
 # print(lq.get_collection_info())
 
+
+# lq.add_text(
+#     text="예상되는 진료는  이며, 진료 시간은 분으로 예상됩니다.", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 3,
+#         "category_ko": "요약",
+#         "category_en": "Summary"
+#         }
+#     )
+# lq.add_text(
+#     text="Expected treatment is  Treatment, and the estimated treatment time is  minutes.", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 3,
+#         "category_ko": "요약",
+#         "category_en": "Summary"
+#         }
+#     )
+
 # lq.add_text(
 #     text="어떤 증상이 있으신가요?", 
 #     collection_name="state_control", 
@@ -123,7 +143,7 @@ lq = LocalQdrant(collection_name="state_control")
 #         "category_en": "Special Considerations"
 #         }
 #     )
-search_query = "any thing else?"
+search_query = "예상 진료는 신경치료 입니다."
 
 print(lq.search(
     query=search_query, 
