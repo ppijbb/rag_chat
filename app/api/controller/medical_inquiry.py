@@ -65,11 +65,10 @@ class MedicalInquiryRouterIngress(BaseIngress):
 
         @router.post(
             "/chat", 
-            description=chat_description,
-            response_model=ChatResponse)
+            description=chat_description)
         async def medical_inquiry_chat(
             request: ChatRequest,
-        ) -> ChatResponse:
+        ):
             result = {
                 "text": "", 
                 "screening": None, 
@@ -97,6 +96,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 status_code = 200
                 content = ChatResponse(**result)
                 content.state = await self.service.get_state.remote(content.text)
+                self.server_logger.info(content)
                 print(f"Time: {end - st}")
             except AssertionError as e:
                 self.server_logger.error(f"!!! data validation error !!! {e}")

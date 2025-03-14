@@ -16,9 +16,9 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     text: str
-    state: int = Field(default=0, description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
     screening: Optional[List[Dict[str, str | None]]] # 데이터 처리 고려한 Obejct List 타입으로 전달 
     treatment: Optional[List[str]]
+    state: int = Field(default=0, description="0: 시작, 1: 증상 부위 입력, 2: 설문 진행 중, 3: 요약, 치료 방법, 4: 종료")
     treatment_time: Optional[int] = Field(default=None, description="치료 시간(분)")
     language: Optional[Languagecode] = Field(default=Languagecode.ko, description="ko: 한국어, en: 영어", exclude=True)
 
@@ -34,14 +34,17 @@ class ChatResponse(BaseModel):
     ) -> str:
         cls._original_text = value
         if "<treatment>" in value:
+            logger.info("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
             tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
             match = tag_pattern.search(value)
             return match.group(1).strip()
         elif "<question>" in value:
+            logger.info("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
             tag_pattern = re.compile(r'<question>(.*?)</question>', re.DOTALL)
             match = tag_pattern.search(value)
             return match.group(1).strip()
         else:
+            logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return value
 
     @model_validator(mode="before")
@@ -107,16 +110,6 @@ class ChatResponse(BaseModel):
     #     tag_pattern = re.compile(r'<state>(.*?)</state>', re.DOTALL)
     #     match = tag_pattern.search(self._original_text)
     #     return 0 if not match else int(match.group(1).strip())
-    
-    @field_validator("state", mode="after")
-    @classmethod
-    def check_text(
-        cls, 
-        value: str
-    ) -> str:
-        state = cls.state_func(cls.text, "state_control", 1)[0]
-        cls.state_func = None
-        return state.pop().metadata["state"] if state else 3
 
 
 class RouterQuery(BaseModel):
