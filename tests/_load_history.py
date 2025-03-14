@@ -4,7 +4,7 @@ import stat
 import dbm
 
 memory_path = "/home/conan/workspace/dcai-mvp-server/qdrant_storage"
-memory_key = "312e437b-7f7e-41e4-8503-fa2067daab1c"
+memory_key = "2ce13ce1-feff-4456-be52-793969f2bd09"
 
 # 파일의 읽기 권한을 추가
 # os.chmod(f'{memory_path}/{memory_key}', stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)

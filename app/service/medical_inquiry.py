@@ -91,6 +91,13 @@ class MedicalInquiryService(BaseService):
                 "question": text,
                 "language": language
             })
+        result.update({
+            "state": self.vectorstore.search(
+                text=result["text"],
+                collection_name="state_control",
+                limit=1
+                )
+            })
         self.service_logger.info(f"chain run takes {time.time()-start}")
         await self._add_user_history( # 채팅 기록 저장
             memory_key=memory_key,

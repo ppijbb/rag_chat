@@ -190,7 +190,7 @@ class VectorStore:
             search_vector = self.embeddings.embed_query(query)
             results = self.client.query_points(
                 collection_name=collection_name,
-                query_vector=search_vector,
+                query=search_vector,
                 limit=limit,
                 score_threshold=0.3
             )

@@ -9,13 +9,10 @@ class LocalQdrant(VectorStore):
 
    
 lq = LocalQdrant(collection_name="state_control")
+# lq.delete_collection()
+# lq._ensure_collection()
 
-print(lq.get_collection_info())
-
-print(lq.search(
-    query="얼마나 아프신가요?", 
-    collection_name="state_control",
-    limit=1))
+# print(lq.get_collection_info())
 
 # lq.add_text(
 #     text="어떤 증상이 있으신가요?", 
@@ -72,4 +69,69 @@ print(lq.search(
 #         }
 #     )
 
+# lq.add_text(
+#     text="What symptoms do you have?", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 2,
+#         "category_ko": "증상",
+#         "category_en": "Symptoms"
+#         }
+#     )
+# lq.add_text(
+#     text="How long have the symptoms lasted?", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 2,
+#         "category_ko": "증상",
+#         "category_en": "Durations"
+#         }
+#     )
+# lq.add_text(
+#     text="Can you tell me where the symptoms are located?", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 1,
+#         "category_ko": "증상",
+#         "category_en": "Symptoms Area"
+#         }
+#     )
+# lq.add_text(
+#     text="How severe is the intensity of the symptoms?", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 2,
+#         "category_ko": "증상",
+#         "category_en": "Severity"
+#         }
+#     )
+# lq.add_text(
+#     text="In what situations do the symptoms worsen?", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 2,
+#         "category_ko": "증상 유발요인",
+#         "category_en": "Specific Situations"
+#         }
+#     )
+# lq.add_text(
+#     text="Is there anything you would like to say?", 
+#     collection_name="state_control", 
+#     metadata={
+#         "state": 2,
+#         "category_ko": "하고 싶은 말",
+#         "category_en": "Special Considerations"
+#         }
+#     )
+search_query = "any thing else?"
 
+print(lq.search(
+    query=search_query, 
+    collection_name="state_control",
+    limit=1))
+
+search_query = lq.embeddings.embed_query(search_query)
+print(lq.client.query_points(
+    query=search_query, 
+    collection_name="state_control",
+    limit=1))
