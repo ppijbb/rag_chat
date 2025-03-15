@@ -93,7 +93,7 @@ class ChatResponse(BaseModel):
                 columns = [col.strip() for col in line.strip("|").split("|")]
                 if len(columns) >= 2:
                     key, value = columns[0], columns[1]
-                    result[key] = value.strip() if len(value.strip()) > 1 else None
+                    result[key] = value.strip() if len(value.strip()) > 0 else None
         except AssertionError as e:
             result = result
         finally:
