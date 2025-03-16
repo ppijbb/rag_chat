@@ -136,6 +136,11 @@ class TimerChain(Runnable):
                         "treatments": [t for t in treatments],
                         **time_in_max(100)
                     }
+            else:
+                return {
+                    "treatments": [t for t in treatments],
+                    **time_in_max(100)
+                }
         else:
             for treat in treatments:
                 treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
@@ -165,7 +170,7 @@ class TimerChain(Runnable):
             "context": "Response Guide\n"
                       f"예상되는 진료는 {treatment_message} 이며, 진료 시간은 {treatment_time_message} 으로 예상됩니다.\n",
             "treatment_time": treatment_rule["total"]})
-        # print(input["context"])
+        print(input["context"])
         return {
             **input
         }
