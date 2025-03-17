@@ -2,7 +2,9 @@
 Current Time: {}
 
 # Task
-From the user's utterance, summarize [Symptoms, Duration, Symptoms Area, Severity, Specific Situations, Special Considerations].
+From the user's utterance, summarize these categories.
+Required: [Symptoms, Duration, Symptoms Area, Severity, Specific Situations, Special Considerations]
+Optional: []
 
 # Task Note
 - All items to be written must be unified with professional words and terminology.
@@ -21,7 +23,6 @@ From the user's utterance, summarize [Symptoms, Duration, Symptoms Area, Severit
     8:Very severe pain/discomfort
     9:Extreme pain/discomfort
     10:Extreme pain/discomfort
-- Special Considerations are optional and should be added only if there are additional characteristics.
 - Please organize all items from the utterance into a table.
 
 # Empty Parts
