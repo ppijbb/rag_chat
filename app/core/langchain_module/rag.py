@@ -4,7 +4,7 @@ from operator import itemgetter
 
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from optimum.intel.openvino import OVModelForSequenceClassification
+from optimum.intel.openvino import OVModelForSequenceClassification, OVWeightQuantizationConfig
 import openvino as ov
 
 from langchain.retrievers.document_compressors import CrossEncoderReranker
@@ -37,7 +37,6 @@ class CustomOVCrossEncoderReranker(OpenVINOReranker):
                 "meta_data": doc.metadata
             } for i, doc in enumerate(documents)
         ]
-
         rerank_request = RerankRequest(query=query, passages=passages)
         rerank_response = self.rerank(rerank_request)[: self.top_n]
         final_results = []
@@ -82,17 +81,21 @@ class VectorStore:
         #     # model_kwargs={"device": 'cuda' if torch.cuda.is_available() else 'cpu'}
         #     model_kwargs={"device": "cpu", "backend": "openvino"}
         #     )
+        ov_quantization_config = OVWeightQuantizationConfig(
+                bits=4,
+            )
         return OpenVINOBgeEmbeddings(
             # ov_model=OVModelForSequenceClassification(model="Fede90/bge-m3-int8-ov"),
             # ov_model=SentenceTransformer(model_name_or_path="BAAI/bge-m3", backend="openvino"),
             model_name_or_path="BAAI/bge-m3",
             model_kwargs={
-                "device": "cpu",
+                "device": "CPU",
+                "quantization_config": ov_quantization_config,
                 "ov_config":{
                         ov.properties.hint.inference_precision: ov.Type.bf16,
                         ov.properties.intel_cpu.denormals_optimization: True,
-                        ov.properties.inference_num_threads: 2,
-                        ov.properties.hint.enable_hyper_threading : True,
+                        ov.properties.inference_num_threads: 4,
+                        ov.properties.hint.enable_hyper_threading: False,
                     }},
             encode_kwargs={'normalize_embeddings': False}
         )
@@ -106,15 +109,30 @@ class VectorStore:
         #         ),
         #     top_n=2
         #     )
+
         return CustomOVCrossEncoderReranker(
             model_name_or_path="EmbeddedLLM/bge-reranker-v2-m3-int4-sym-ov",
             model_kwargs={
-                "device": "cpu",
+                "device": "CPU",
                 "ov_config":{
+                        "KV_CACHE_PRECISION": "u8",
+                        "DYNAMIC_QUANTIZATION_GROUP_SIZE": "32",
                         ov.properties.hint.inference_precision: ov.Type.bf16,
                         ov.properties.intel_cpu.denormals_optimization: True,
-                        ov.properties.inference_num_threads: 2,
-                        ov.properties.hint.enable_hyper_threading : True,
+                        ov.properties.inference_num_threads: 4,
+                        ov.properties.hint.enable_hyper_threading: False,
+                        ov.properties.streams.num : ov.properties.streams.Num.NUMA,
+                        ov.properties.hint.num_requests: 1,
+                        ov.properties.hint.execution_mode: ov.properties.hint.ExecutionMode.PERFORMANCE,
+                        # ov.properties.hint.execution_mode: ov.properties.hint.ExecutionMode.ACCURACY,
+                        # ov.properties.hint.performance_mode: ov.properties.hint.PerformanceMode.LATENCY,
+                        # ov.properties.hint.performance_mode: ov.properties.hint.PerformanceMode.THROUGHPUT,CUMULATIVE_THROUGHPUT
+                        ov.properties.hint.performance_mode: ov.properties.hint.PerformanceMode.CUMULATIVE_THROUGHPUT,
+                        ov.properties.hint.enable_cpu_pinning: True,
+                        ov.properties.hint.allow_auto_batching: True,
+                        # ov.properties.available_devices: "CPU",
+                        # ov.properties.loaded_from_cache: True,
+                        # ov.properties.intel_cpu.sparce_weights_decompression_rate: 1.0,
                     }},
             top_n=2
         )
