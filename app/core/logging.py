@@ -1,5 +1,8 @@
 import logging
 import sys
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
 
 def get_logger():
     """로깅 설정을 구성합니다."""
