@@ -47,8 +47,7 @@ class ChatResponse(BaseModel):
     @model_validator(mode="before")
     def check_screening(cls, values: Dict) -> Dict:
         value = values.get("screening")
-        language = values.get("language", "ko")  # Default to "ko" if language is not set
-
+        language = values.get("language")  # Default to "ko" if language is not set
         if value is None:
             return values
 

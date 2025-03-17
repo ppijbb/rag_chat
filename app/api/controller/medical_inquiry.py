@@ -94,7 +94,7 @@ class MedicalInquiryRouterIngress(BaseIngress):
                 # ----------------------------------- #
                 assert len(result) > 0, "Generation failed"
                 status_code = 200
-                content = ChatResponse(**result)
+                content = ChatResponse(language=request.lang, **result)
                 content.state = await self.service.get_state.remote(content.text)
                 print(f"Time: {end - st}")
             except AssertionError as e:
