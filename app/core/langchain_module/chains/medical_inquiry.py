@@ -78,6 +78,8 @@ class EntityChain(Runnable):
 
 
 class TimerChain(Runnable):
+    max_time:int = 90
+
     def treatment_rule(
         self, 
         treatments: List[Dict],
@@ -118,7 +120,7 @@ class TimerChain(Runnable):
                         treatments[t]["time"] = 40 if "교정" in t else 25
                 return {
                     "treatments": [t for t in treatments],
-                    **time_in_max(100)
+                    **time_in_max(self.max_time)
                 }
                 
             elif any(is_treat): # 치료가 포함된 경우
@@ -134,12 +136,12 @@ class TimerChain(Runnable):
                 else:
                     return {
                         "treatments": [t for t in treatments],
-                        **time_in_max(100)
+                        **time_in_max(self.max_time)
                     }
             else:
                 return {
                     "treatments": [t for t in treatments],
-                    **time_in_max(100)
+                    **time_in_max(self.max_time)
                 }
         else:
             for treat in treatments:
@@ -184,16 +186,14 @@ class StepDispatcher(Runnable):
     """
     destination 값("step1", "step2", "step3")에 따라 해당 체인을 선택하여 실행하는 Runnable 클래스입니다.
     """
-    def __init__(self, system_prompt: str, timer_prompt: str):
-        self.system_prompt = system_prompt
-        self.timer_prompt = timer_prompt
+    def __init__(self, system_prompt: str, timer_prompt: str, treatment_prompt: str):
         self.llm = get_llm()  # get_llm()를 통해 LLM 인스턴스 가져옴
 
         # step1: 문진 진행
         self.chain_step1 = (
             RunnableParallel(
                 text=ChatPromptTemplate.from_messages([
-                        SystemMessage(content=self.system_prompt),
+                        SystemMessage(content=system_prompt),
                         MessagesPlaceholder("history"),
                         ("human", "Contexts:\n{context}\n\n"
                                   "Screened Intents:\n{intent}\n"
@@ -212,24 +212,20 @@ class StepDispatcher(Runnable):
             RunnablePassthrough.assign(
                 answers=ChatPromptTemplate.from_messages([  
                     # 필요한 치료 방법만 선택하는 프롬프트
-                    SystemMessage(
-                        content="Contexts를 참고하여 현재 가장 필요한 치료 방법을 선택하세요. "
-                                "서로 다른 치료 방법이 적용되야 하는 경우에만 다중 선택 가능합니다. "
-                                "같은 치료 방법이라면 더 적절한 것 하나만 선택해야합니다."),
+                    SystemMessage(content=treatment_prompt),
                     MessagesPlaceholder("history"),
                     ("human", "Contexts:\n{context}\n\n"
                               "Screened Intents:\n{intent}\n"
                               "Utterance: {question}\n"
-                              "Processing State: step2\n"
                               "---\n"
-                              "answers:[{raw_treatment}]") ])
+                              "Possible Anwers:[{raw_treatment}]") ])
                     | self.llm.with_structured_output(TreatmentQuery)
                     | RunnableLambda(lambda x: list(set(x.answers))))
             | TimerChain()
             | RunnableParallel(
                 text=RunnablePassthrough()
                      | ChatPromptTemplate.from_messages([
-                        SystemMessage(content=self.system_prompt),
+                        SystemMessage(content=system_prompt),
                         MessagesPlaceholder("history"),
                         ("human", "Contexts:\n{context}\n\n"
                                   "Screened Intents:\n{intent}\n"
@@ -248,7 +244,7 @@ class StepDispatcher(Runnable):
         self.chain_step3 = (
             RunnableParallel(
                 text=ChatPromptTemplate.from_messages([
-                        SystemMessage(content=self.system_prompt),
+                        SystemMessage(content=system_prompt),
                         MessagesPlaceholder("history"),
                         ("human", "Contexts:\n{context}\n\n"
                                   "Screened Intents:\n{intent}\n"
@@ -265,8 +261,8 @@ class StepDispatcher(Runnable):
 
     def invoke(self, input: dict, config: dict = None, **kwargs):
         destination = input.get("destination")
-        print(f"route to {destination} chain")
-        start = time.time()
+        # print(f"route to {destination} chain")
+        # start = time.time()
         match destination:
             case "step1":
                 result = self.chain_step1.invoke(input, config=config, **kwargs)
@@ -276,7 +272,7 @@ class StepDispatcher(Runnable):
                 result = self.chain_step3.invoke(input, config=config, **kwargs)
             case _:
                 raise ValueError(f"Invalid destination: {destination}")
-        print(f"{destination} chain Elapsed time: {time.time() - start}")
+        # print(f"{destination} chain Elapsed time: {time.time() - start}")
         return result
 
     def batch(self, inputs: list, config: dict = None, **kwargs):

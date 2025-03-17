@@ -24,7 +24,9 @@ from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.util.time_func import format_datetime_with_ampm
 from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDispatcher
 from app.model.dto.medical_inquiry import RouterQuery
-from app.core.prompts.medical_inquiry import SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, MULTI_QUERY_PROMPT
+from app.core.prompts.medical_inquiry import (
+    SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, 
+    MULTI_QUERY_PROMPT, STEP_CONTROL_PROMPT, TREATMENT_PROMPT)
 from app.service._base import BaseService
 
 
@@ -75,12 +77,14 @@ class MedicalInquiryService(BaseService):
         memory_key:str="history"
     ) -> Dict[str, str]:
         start = time.time()
+        history = self._get_user_history(
+                        memory_key=memory_key,
+                        state=state)
+        # self.service_logger.info(f"user `{memory_key}` history: {history}")
         rag_chain = self.get_service_chain(
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
-                    messages=self._get_user_history(
-                        memory_key=memory_key,
-                        state=state)),
+                    messages=history),
                 memory_key=memory_key,
                 return_messages=True),
             language=language
@@ -247,11 +251,14 @@ class MedicalInquiryService(BaseService):
             ", ".join(self.dental_section_list),
             language) # 통증 부위 목록
         entity_prompt: str = (ENTITY_PROMPT_KO if language == "ko" else ENTITY_PROMPT_EN).format(
-            format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
-            )
+            format_datetime_with_ampm(datetime.datetime.now())) # 현재 시각
         timer_prompt: str = TIMER_PROMPT.format(
-            format_datetime_with_ampm(datetime.datetime.now())
-            )
+            format_datetime_with_ampm(datetime.datetime.now()))
+        step_prompt: str =  STEP_CONTROL_PROMPT.format(
+            format_datetime_with_ampm(datetime.datetime.now()),
+            ", ".join(self.dental_section_list))
+        treatment_prompt:str = TREATMENT_PROMPT.format(
+            format_datetime_with_ampm(datetime.datetime.now()))
         # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
         # return (RunnablePassthrough.assign(
         #              chat_history=RunnableLambda(memory.load_memory_variables)
@@ -304,9 +311,11 @@ class MedicalInquiryService(BaseService):
         stage2 = EntityChain(system_prompt=entity_prompt)
         stage3 = RunnableParallel(
             destination=ChatPromptTemplate.from_messages([
-                            SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
+                            SystemMessage(content=step_prompt),
                             MessagesPlaceholder("history"),
-                            ("human", "Screened Intents:\n{intent}\nUtterance: {question}")])
+                            ("human", "Screened Intents:\n"
+                                      "{intent}\n"
+                                      "Utterance: {question}")])
                         | self.llm.with_structured_output(RouterQuery)
                         | RunnableLambda(lambda x: x.destination),
             context=RunnablePassthrough.assign(
@@ -327,7 +336,8 @@ class MedicalInquiryService(BaseService):
         )
         stage5 = StepDispatcher(
             system_prompt=system_prompt,
-            timer_prompt=timer_prompt
+            timer_prompt=timer_prompt,
+            treatment_prompt=treatment_prompt
         )
         
         # Compose the pipeline while wrapping each stage with the timing wrapper.
