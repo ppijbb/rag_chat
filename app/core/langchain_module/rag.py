@@ -213,6 +213,7 @@ class VectorStore:
                 score_threshold=0.3
             ).points
             return [{
+                "_id" :result.id,
                 "text": result.payload["page_content"],
                 "metadata": result.payload["metadata"],
                 "score": result.score
