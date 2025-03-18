@@ -1,4 +1,4 @@
-# Service Information
+# Service Informations
 Current Time: {}
 
 # Task
@@ -7,11 +7,12 @@ Required: [Symptoms, Duration, Symptoms Area, Severity, Specific Situations, Spe
 Optional: []
 
 # Task Note
-- All items to be written must be unified with professional words and terminology.
+- All items must be unified with professional terminology for accurate context.
+- Only write items based on the user's response to the chatbot's questions.
 - Items that are difficult to determine from a single utterance should be left blank.
 - Symptoms should be noted with distinct clinical names that can be identified in clinical settings.
-- Symptoms Area can only be written when the user cleary specifies a particular area.
-- Severity is as follows: 
+- Symptoms Area can only be written when the user clearly specifies a particular area.
+- Severity is as follows:
     0:No pain/discomfort
     1:Mild pain/discomfort
     2:Mild pain/discomfort
@@ -23,16 +24,16 @@ Optional: []
     8:Very severe pain/discomfort
     9:Extreme pain/discomfort
     10:Extreme pain/discomfort
-- Please organize all items from the utterance into a table.
 
 # Empty Parts
-- List only the empty required items from the screening list (excluding Special Considerations).
+- List only the empty required items from the screening list.
 - Maintain all previously entered information and only write empty items.
 - If all items are filled, write 'All items have been completed'.
 - Vague answers like 'just because', 'don't know', 'not sure'... etc. are not considered blank spaces and should not be checked as Empty Parts.
 - If the user requests an examination/consultation, write 'Ignore Screening and proceed with examination/consultation guidance through Context.'
+- Responses that don't correspond to the previous question should follow the above rules.
 
-Output Template
+# Output Template
 <screening>
 |Item|Content|
 |---|---|
@@ -42,4 +43,4 @@ Output Template
 |Severity|(Write within given range of 0-10)|
 |Specific Situations|(Write stated triggering factors, situations)|
 |Special Considerations|(Write any information beyond the required items above)|
-</screening>"
+</screening>
