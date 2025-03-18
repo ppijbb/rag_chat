@@ -6,7 +6,6 @@ from langchain_core.chat_history import InMemoryChatMessageHistory
 
 from langchain_neo4j import GraphCypherQAChain
 from langchain.memory import ConversationBufferMemory
-from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.schema import StrOutputParser
 
@@ -14,9 +13,9 @@ from operator import itemgetter
 from typing import Dict
 
 from app.core.langchain_module.rag import HybridRAG
-from app.core.langchain_module import DDG_LLM
+from app.core.langchain_module.llm import DDG_LLM
 from app.core.prompts.follow_up_care import system_prompt
-from app.service.medical_inquiry import MedicalInquiryService
+from app.service._base import BaseService
 
 
 @serve.deployment(
@@ -26,7 +25,7 @@ from app.service.medical_inquiry import MedicalInquiryService
         "target_ongoing_requests": 5,
     },
     max_ongoing_requests=10)
-class FollowupCareService(MedicalInquiryService):
+class FollowupCareService(BaseService):
     def __init__(self,*args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -108,7 +107,7 @@ class FollowupCareService(MedicalInquiryService):
             "history": step_output['history']
         }
 
-    def get_rag_chain(
+    def get_service_chain(
         self,
         vectorstore: HybridRAG,
         neo4j_chain: GraphCypherQAChain,

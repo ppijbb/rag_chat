@@ -5,13 +5,14 @@ import time
 import traceback
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse, Response
+from fastapi.responses import StreamingResponse, Response, JSONResponse
 
 from ray import serve
 
 from app.service.follow_up_care import FollowupCareService
 from app.model.dto.follow_up_care import ChatRequest, ChatResponse
 from app.api.controller.base_router import BaseIngress
+from app.api.controller.descriptions.medical_inquiry import chat_description
 
 router = APIRouter()
 
@@ -31,8 +32,8 @@ class FollowupCareRouterIngress(BaseIngress):
         super().__init__(service=service)
         
     @serve.batch(
-            max_batch_size=4, 
-            batch_wait_timeout_s=0.1)
+        max_batch_size=4, 
+        batch_wait_timeout_s=0.1)
     async def batched_process(
        self,
        request_prompt: List[Any],
@@ -64,38 +65,57 @@ class FollowupCareRouterIngress(BaseIngress):
 
         @router.post(
             "/chat", 
-            response_model=ChatResponse)
+            description=chat_description)
         async def medical_inquiry_chat(
             request: ChatRequest,
-        ) -> ChatResponse:
-            result = ""
+        ):
+            result = {
+                "text": "", 
+                "screening": None, 
+                "treatment": None
+            }
+            state = 0
             # Generate predicted tokens
             try:
                 # ----------------------------------- #
                 st = time.time()
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
-                result += await self.batched_summary(
-                    self=self._get_class(),
-                    request_prompt=request.prompt,
-                    request_text=request.text)
-                # result = text_postprocess(result)
-                # print(result)
+                chain_result = await self.service.inquiry_chat.remote(
+                    # self=self._get_class(),
+                    text=request.text,
+                    language=request.lang,
+                    state=request.state,
+                    memory_key=request.uid)
+                result.update(chain_result)
+                # self.server_logger.info(f"\nRequest: {request.text}")
+                self.server_logger.info(f"Result: {result}")
                 end = time.time()
                 # ----------------------------------- #
                 assert len(result) > 0, "Generation failed"
+                status_code = 200
+                content = ChatResponse(language=request.lang, **result)
+                content.state = await self.service.get_state.remote(content.text)
                 print(f"Time: {end - st}")
             except AssertionError as e:
-                result += e
+                self.server_logger.error(f"!!! data validation error !!! {e}")
+                result["text"] = str(e)
+                status_code = 501
+                content = ChatResponse(**result)
             except Exception as e:
-                print(traceback.format_exc())
-                self.server_logger.error("error" + e)
-                result += "Generation failed"
+                self.server_logger.error(f"!!! unkwon error !!! {e}")
+                result["text"] = "Generation failed"
+                status_code = 500
+                content = ChatResponse(**result)
             finally:
-                return ChatResponse(text=result)
+                return JSONResponse(
+                    status_code=status_code, 
+                    content=content.model_dump()
+                )
 
         @router.post(
             "/chat/stream",
+            description=chat_description,
         )
         async def medical_inquiry_chat_stream(
             request: ChatRequest,
@@ -108,17 +128,19 @@ class FollowupCareRouterIngress(BaseIngress):
                 # result += ray.get(service.summarize.remote(ray.put(request.text)))
                 # assert len(request.text ) > 200, "Text is too short"
                 return StreamingResponse(
-                    content=self.service_as_stream.summarize.remote(
-                        input_prompt=request.prompt,
-                        input_text=request.text, 
-                        stream=True),
+                    content=self.service_as_stream.inquiry_stream.remote(
+                        # self=self._get_class(),
+                        text=request.text,
+                        language=request.lang,
+                        state=request.state,
+                        memory_key=request.uid),
                     media_type="text/event-stream")
                 end = time.time()
                 # ----------------------------------- #
                 print(f"Time: {end - st}")
             except AssertionError as e:
+                self.server_logger.error("validation error" + e)
                 result += e
             except Exception as e:
-                print(traceback.format_exc())
-                self.server_logger.error("error" + e)
-                result += "Error in summarize"
+                self.server_logger.error("unkwon error" + e)
+                result += "Generation failed"

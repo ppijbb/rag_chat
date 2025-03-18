@@ -1,1 +1,2 @@
 from .medical_inquiry import MedicalInquiryRouterIngress as MedicalInquiryRouterIngress
+from .follow_up_care import FollowupCareRouterIngress as FollowupCareRouterIngress
