@@ -7,6 +7,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
 from langchain.schema import StrOutputParser
 
+from app.core.logging import get_logger
 from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.model.dto.medical_inquiry import TreatmentQuery, RouterQuery
 
@@ -85,36 +86,47 @@ class TimerChain(Runnable):
         treatments: List[Dict],
         pain: str
     ) -> int:
-        def time_in_max(max_time: int)->int:
+        self.service_logger = get_logger()
+        def time_in_max(max_time: int) -> int:
             processed_times = [int(a['time']) for a in treatments.values()]
+            self.service_logger.info(f"Processed times: {processed_times}")
             return {
                 "cal_info": [t for t in processed_times],
                 "total": min(sum(processed_times), max_time)
             }
+        
         if pain is None:
             pain = "0"
         pain = int(pain[-1] if "-" in pain or "~" in pain else pain)
+        self.service_logger.info(f"Pain level: {pain}")
 
         if len(treatments) > 1:
+            self.service_logger.info(f"Multiple treatments found: {treatments}")
             for treat in treatments:
-                treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
+                if isinstance(treatments[treat]['time'], str):
+                    treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
                 if treatments[treat]["time"] <= 25:
                     treatments[treat]["time"] = 0
                 if "스케일링" in treatments and "잇몸" in treat:
                     if pain < 7:
-                        del treatments[treat] 
+                        del treatments[treat]
+                        self.service_logger.info(f"Deleted treatment due to low pain: {treat}")
                     else:
                         del treatments["스케일링"]
+                        self.service_logger.info("Deleted 스케일링 due to high pain")
 
             is_treat = [t for t in treatments if "치료" in t]
             is_couns = [t for t in treatments if "상담" in t]
+            self.service_logger.info(f"Treatments: {is_treat}, Consultations: {is_couns}")
             
-            if len(is_couns) > 1: # 상담이 2개 이상인 경우
+            if len(is_couns) > 1:  # 상담이 2개 이상인 경우
+                self.service_logger.info("Multiple consultations found")
                 return {
                     "treatments": [t for t in treatments],
                     **time_in_max(55 if any([t for t in treatments if "교정" in t]) else 40)
                 }
-            elif any(is_treat) and any(is_couns): # 치료와 상담이 모두 있는 경우
+            elif any(is_treat) and any(is_couns):  # 치료와 상담이 모두 있는 경우
+                self.service_logger.info("Both treatments and consultations found")
                 for t in treatments:
                     if "상담" in t:
                         treatments[t]["time"] = 40 if "교정" in t else 25
@@ -123,11 +135,14 @@ class TimerChain(Runnable):
                     **time_in_max(self.max_time)
                 }
                 
-            elif any(is_treat): # 치료가 포함된 경우
-                if any([t for t in treatments if "신경" in t]): # 신경치료가 포함된 경우
-                    result = [t for t in treatments if "신경" in t] # 신경치료만 계산
-                    is_re = [r for r in result if "재신경" in r] # 재신경 치료인 경우 재신경 치료 우선
+            elif any(is_treat):  # 치료가 포함된 경우
+                self.service_logger.info("Treatments found")
+                if any([t for t in treatments if "신경" in t]):  # 신경치료가 포함된 경우
+                    self.service_logger.info("Nerve treatment found")
+                    result = [t for t in treatments if "신경" in t]  # 신경치료만 계산
+                    is_re = [r for r in result if "재신경" in r]  # 재신경 치료인 경우 재신경 치료 우선
                     result = is_re.pop() if len(is_re) > 0 else result.pop()
+                    self.service_logger.info(f"Selected treatment: {result}")
                     return {
                         "treatments": [result],
                         "cal_info": treatments[result]["time"],
@@ -139,17 +154,22 @@ class TimerChain(Runnable):
                         **time_in_max(self.max_time)
                     }
             else:
+                self.service_logger.info("Only consultations found")
+                self.service_logger.info(f"Consultations: {treatments}")
                 return {
                     "treatments": [t for t in treatments],
                     **time_in_max(self.max_time)
                 }
         else:
+            self.service_logger.info("Single treatment found")
             for treat in treatments:
-                treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
+                if isinstance(treatments[treat]['time'], str):
+                    treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
             return {
                 "treatments": [t for t in treatments],
                 **time_in_max(1000)
             }
+
 
     def invoke(self, input, config, **kwargs):
         # 입력 데이터를 처리하는 로직 구현
@@ -188,6 +208,7 @@ class StepDispatcher(Runnable):
     """
     def __init__(self, system_prompt: str, timer_prompt: str, treatment_prompt: str):
         self.llm = get_llm()  # get_llm()를 통해 LLM 인스턴스 가져옴
+        self.service_logger = get_logger()
 
         # step1: 문진 진행
         self.chain_step1 = (
@@ -199,7 +220,7 @@ class StepDispatcher(Runnable):
                                   "Screened Intents:\n{intent}\n"
                                   "Utterance: {question}\n"
                                   "Language: {language}\n"
-                                  "Processing State: step1") ])
+                                  "Running State: step1") ])
                     | self.llm
                     | StrOutputParser(),
                 screening=itemgetter("intent")
@@ -261,8 +282,8 @@ class StepDispatcher(Runnable):
 
     def invoke(self, input: dict, config: dict = None, **kwargs):
         destination = input.get("destination")
-        # print(f"route to {destination} chain")
-        # start = time.time()
+        self.service_logger.info(f"route to {destination} chain")
+        start = time.time()
         match destination:
             case "step1":
                 result = self.chain_step1.invoke(input, config=config, **kwargs)
@@ -272,7 +293,7 @@ class StepDispatcher(Runnable):
                 result = self.chain_step3.invoke(input, config=config, **kwargs)
             case _:
                 raise ValueError(f"Invalid destination: {destination}")
-        # print(f"{destination} chain Elapsed time: {time.time() - start}")
+        self.service_logger.info(f"{destination} chain Elapsed time: {time.time() - start}")
         return result
 
     def batch(self, inputs: list, config: dict = None, **kwargs):
@@ -341,6 +362,7 @@ class ServiceChain:
             STEP_CONTROL_PROMPT, TREATMENT_PROMPT)
         
         # Use provided templates or fall back to imported ones
+        current_time = format_datetime_with_ampm(datetime.now())
         system_prompt_template = SYSTEM_PROMPT
         entity_prompt_ko = ENTITY_PROMPT_KO
         entity_prompt_en = ENTITY_PROMPT_EN
@@ -349,7 +371,7 @@ class ServiceChain:
         treatment_prompt_template = TREATMENT_PROMPT
         
         # Format prompts with current time and dental sections
-        current_time = format_datetime_with_ampm(datetime.now())
+        
         system_prompt = system_prompt_template.format(
             current_time, 
             ", ".join(self.dental_section_list),
