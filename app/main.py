@@ -10,7 +10,7 @@ from ray import serve
 from ray.serve.handle import DeploymentHandle
 from ray.serve.schema import LoggingConfig
 
-from app.api.controller import MedicalInquiryRouterIngress
+from app.api.controller import MedicalInquiryRouterIngress, FollowupCareRouterIngress
 from app.service.medical_inquiry import MedicalInquiryService
 
 from app.core.lifespan import service_lifecycle
@@ -48,7 +48,8 @@ app.add_middleware(
     max_ongoing_requests=10)
 @serve.ingress(app=app)
 class APIIngress(
-    MedicalInquiryRouterIngress
+    MedicalInquiryRouterIngress,
+    FollowupCareRouterIngress
     ):
     routing = False
 

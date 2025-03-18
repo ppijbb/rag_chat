@@ -8,7 +8,7 @@ from langchain_core.messages import SystemMessage
 from langchain.schema import StrOutputParser
 
 from app.core.langchain_module.llm import DDG_LLM, get_llm
-from app.model.dto.medical_inquiry import TreatmentQuery
+from app.model.dto.medical_inquiry import TreatmentQuery, RouterQuery
 
 
 class EntityChain(Runnable):
@@ -277,3 +277,143 @@ class StepDispatcher(Runnable):
 
     def batch(self, inputs: list, config: dict = None, **kwargs):
         return [self.invoke(single_input, config=config, **kwargs) for single_input in inputs]
+
+
+class ServiceChain:
+    """
+    A class that creates and manages the RAG service chain for medical inquiries.
+    Moved from MedicalInquiryService to improve modularity.
+    """
+    def __init__(self, 
+                 retriever,
+                 llm=None,
+                 dental_section_list=None,
+                 service_logger=None):
+        """
+        Initialize the ServiceChain with required components.
+        
+        Args:
+            retriever: The retriever to use for RAG
+            llm: Language model to use, defaults to get_llm()
+            dental_section_list: List of dental sections/areas
+            process_context_func: Function to process context from retrieval
+            service_logger: Logger to use for timing information
+        """
+        self.llm = llm or get_llm()
+        self.rag = retriever
+        self.dental_section_list = dental_section_list or []
+        self.service_logger = service_logger
+    
+    def _process_context(
+        self, 
+        step_output
+    ) -> Dict[str, str]:
+        result, category = [], []
+        language = step_output["language"]
+        self.service_logger.warning(f"rag step output {step_output['rag']}")
+        for doc in step_output['rag']:
+            source_data = doc.page_content.strip()
+            doc.metadata["치료"] = doc.metadata.get(f"치료_{language}")
+            metadata_text = "\n".join([
+                f"{k}: {v}"
+                for k, v in doc.metadata.items()
+                if k not in ["_id", "_collection_name"]])
+            if doc.metadata.get(f"치료") not in category:
+                category.append(doc.metadata.get(f"치료"))
+                result.append(f"Case {len(category)}\n"
+                              f"유사 사례: {source_data}\n"
+                              f"{metadata_text}")
+        return {
+            "context": "\n\n".join(result),
+            "raw_context": step_output["rag"]
+        }
+   
+    def build_chain(
+        self,
+        memory,
+        language="ko"
+    ) -> RunnablePassthrough:
+        from datetime import datetime
+        from app.util.time_func import format_datetime_with_ampm
+        from app.model.dto.medical_inquiry import RouterQuery
+        from app.core.prompts.medical_inquiry import (
+            SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, 
+            STEP_CONTROL_PROMPT, TREATMENT_PROMPT)
+        
+        # Use provided templates or fall back to imported ones
+        system_prompt_template = SYSTEM_PROMPT
+        entity_prompt_ko = ENTITY_PROMPT_KO
+        entity_prompt_en = ENTITY_PROMPT_EN
+        timer_prompt_template = TIMER_PROMPT
+        step_control_prompt_template = STEP_CONTROL_PROMPT
+        treatment_prompt_template = TREATMENT_PROMPT
+        
+        # Format prompts with current time and dental sections
+        current_time = format_datetime_with_ampm(datetime.now())
+        system_prompt = system_prompt_template.format(
+            current_time, 
+            ", ".join(self.dental_section_list),
+            language)
+        entity_prompt = (entity_prompt_ko if language == "ko" else entity_prompt_en).format(current_time)
+        timer_prompt = timer_prompt_template.format(current_time)
+        step_prompt = step_control_prompt_template.format(current_time, ", ".join(self.dental_section_list))
+        treatment_prompt = treatment_prompt_template.format(current_time)
+        
+        def timed_stage(stage_name, runnable):
+            def timed_fn(*args):
+                start = time.time()
+                result = (runnable.invoke(input=args[0], config=None)
+                            if hasattr(runnable, "invoke") else
+                          runnable(input=args[0], config=None))
+                elapsed = time.time() - start
+                if self.service_logger:
+                    self.service_logger.info(f"{stage_name} took {elapsed:.4f} seconds")
+                return result
+            return RunnableLambda(timed_fn)
+        
+        # Break down the pipeline into stages so we can time each one
+        stage1 = RunnablePassthrough.assign(
+            chat_history=RunnableLambda(memory.load_memory_variables)
+                         | RunnableLambda(lambda x: x[memory.memory_key])
+        )
+        stage2 = EntityChain(system_prompt=entity_prompt)
+        stage3 = RunnableParallel(
+            destination=ChatPromptTemplate.from_messages([
+                            SystemMessage(content=step_prompt),
+                            MessagesPlaceholder("history"),
+                            ("human", "Screened Intents:\n"
+                                      "{intent}\n"
+                                      "Utterance: {question}")])
+                        | self.llm.with_structured_output(RouterQuery)
+                        | RunnableLambda(lambda x: x.destination),
+            context=RunnablePassthrough.assign(
+                        rag=itemgetter("result")
+                            | self.rag, 
+                        language=itemgetter("language"))
+                    | self._process_context,
+            question=itemgetter("question"),
+            intent=itemgetter("intent"),
+            parsed_intent=itemgetter("parsed_intent"),
+            history=itemgetter("history"),
+            language=itemgetter("language")
+        )
+        stage4 = RunnablePassthrough.assign(
+            context=RunnableLambda(lambda x: x["context"]["context"]),
+            raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
+            raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]])
+        )
+        stage5 = StepDispatcher(
+            system_prompt=system_prompt,
+            timer_prompt=timer_prompt,
+            treatment_prompt=treatment_prompt
+        )
+        
+        # Compose the pipeline while wrapping each stage with the timing wrapper
+        timed_chain = (
+            timed_stage("Stage 1: Load Memory and Chat History", stage1)
+            | timed_stage("Stage 2: EntityChain", stage2)
+            | timed_stage("Stage 3: RunnableParallel", stage3)
+            | timed_stage("Stage 4: Context Assignment", stage4)
+            | timed_stage("Stage 5: StepDispatcher", stage5)
+        )
+        return timed_chain

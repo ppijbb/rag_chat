@@ -1,4 +1,3 @@
-from operator import itemgetter
 from typing import List, Any, Dict, AsyncIterator
 import datetime
 import time
@@ -6,27 +5,21 @@ import time
 from ray import serve
 
 from langchain.schema import Document
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.memory import ConversationBufferMemory
-from langchain.retrievers.multi_query import LineListOutputParser
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain.retrievers import EnsembleRetriever, ContextualCompressionRetriever, MultiQueryRetriever
 
 from langchain_core.prompts.prompt import PromptTemplate
-from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda, RunnableSerializable
+from langchain_core.runnables import RunnableSerializable
 
 from langchain_community.retrievers import BM25Retriever
 
 from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM, get_llm
-from app.util.time_func import format_datetime_with_ampm
-from app.core.langchain_module.chains.medical_inquiry import EntityChain, StepDispatcher
-from app.model.dto.medical_inquiry import RouterQuery
-from app.core.prompts.medical_inquiry import (
-    SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, 
-    MULTI_QUERY_PROMPT, STEP_CONTROL_PROMPT, TREATMENT_PROMPT)
+from app.core.langchain_module.chains.medical_inquiry import ServiceChain
+from app.core.prompts.medical_inquiry import MULTI_QUERY_PROMPT
 from app.service._base import BaseService
 
 
@@ -69,6 +62,14 @@ class MedicalInquiryService(BaseService):
             vector_docs=self.vectorstore.all_docs)
         self._memory_path = "qdrant_storage"
         
+        # Initialize the ServiceChain
+        self.service_chain = ServiceChain(
+            retriever=self.rag,
+            llm=self.llm,
+            dental_section_list=self.dental_section_list,
+            service_logger=self.service_logger
+        )
+        
     async def inquiry_chat(
         self,
         text:str,
@@ -77,18 +78,23 @@ class MedicalInquiryService(BaseService):
         memory_key:str="history"
     ) -> Dict[str, str]:
         start = time.time()
-        history = self._get_user_history(
-                        memory_key=memory_key,
-                        state=state)
+        # history = self._get_user_history(
+        #     memory_key=memory_key,
+        #     state=state)
         # self.service_logger.info(f"user `{memory_key}` history: {history}")
-        rag_chain = self.get_service_chain(
+        
+        # Use the ServiceChain instead of get_service_chain
+        rag_chain = await self.get_service_chain(
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
-                    messages=history),
-                memory_key=memory_key,
-                return_messages=True),
+                    messages=self._get_user_history(
+                        memory_key=memory_key,
+                        state=state)),
+                return_messages=True,
+                memory_key=memory_key),
             language=language
-            )
+        )
+        
         self.service_logger.info(f"chain init takes {time.time()-start}")
         start = time.time()
         result = await rag_chain.ainvoke({
@@ -122,7 +128,8 @@ class MedicalInquiryService(BaseService):
         state:int,
         memory_key:str="history"
     ) -> AsyncIterator:
-        rag_chain = self.get_service_chain(
+        # Use the ServiceChain instead of get_service_chain
+        rag_chain = await self.get_service_chain(
             memory=ConversationBufferMemory(
                 chat_memory=InMemoryChatMessageHistory(
                     messages=self._get_user_history(
@@ -131,7 +138,8 @@ class MedicalInquiryService(BaseService):
                 return_messages=True,
                 memory_key=memory_key),
             language=language
-            )
+        )
+        
         return rag_chain.astream({
                 "question": text,
                 "language": language
@@ -161,7 +169,7 @@ class MedicalInquiryService(BaseService):
             retriever=vector_retriever,
             llm=self.llm,
             # parser_key="lines", # parser_key는 더 이상 사용하지 않음
-            include_original=True,
+            include_original=False,
             prompt=PromptTemplate(
                 template=MULTI_QUERY_PROMPT
             )
@@ -214,138 +222,6 @@ class MedicalInquiryService(BaseService):
         )
         
         return final_retriever
-    
-    def _process_context(
-        self, 
-        step_output
-    ) -> Dict[str, str]:
-        result, category = [], []
-        language = step_output["language"]
-        self.service_logger.warning(f"rag step output {step_output['rag']}")
-        for doc in step_output['rag']:
-            source_data = doc.page_content.strip()
-            doc.metadata["치료"] = doc.metadata.get(f"치료_{language}")
-            metadata_text = "\n".join([
-                f"{k}: {v}"
-                for k, v in doc.metadata.items()
-                if k not in ["_id", "_collection_name"]])
-            if doc.metadata.get(f"치료") not in category:
-                category.append(doc.metadata.get(f"치료"))
-                result.append(f"Case {len(category)}\n"
-                              f"유사 사례: {source_data}\n"
-                              f"{metadata_text}")
-        return {
-            "context": "\n\n".join(result),
-            "raw_context": step_output["rag"]
-        }
 
-    # Initialize RAG chain
-    def get_service_chain(
-        self,
-        memory: ConversationBufferMemory,
-        language: str,
-    ) -> RunnableSerializable:
-
-        system_prompt: str = SYSTEM_PROMPT.format(
-            format_datetime_with_ampm(datetime.datetime.now()), # 현재 시각
-            ", ".join(self.dental_section_list),
-            language) # 통증 부위 목록
-        entity_prompt: str = (ENTITY_PROMPT_KO if language == "ko" else ENTITY_PROMPT_EN).format(
-            format_datetime_with_ampm(datetime.datetime.now())) # 현재 시각
-        timer_prompt: str = TIMER_PROMPT.format(
-            format_datetime_with_ampm(datetime.datetime.now()))
-        step_prompt: str =  STEP_CONTROL_PROMPT.format(
-            format_datetime_with_ampm(datetime.datetime.now()),
-            ", ".join(self.dental_section_list))
-        treatment_prompt:str = TREATMENT_PROMPT.format(
-            format_datetime_with_ampm(datetime.datetime.now()))
-        # IntentChain과 RunnableParallel 이후 결과를 router_chain을 통해 분기시킵니다.
-        # return (RunnablePassthrough.assign(
-        #              chat_history=RunnableLambda(memory.load_memory_variables)
-        #                           | RunnableLambda(lambda x: x[memory.memory_key]))
-        #         | EntityChain(system_prompt=entity_prompt)
-        #         | RunnableParallel(
-        #                 destination=ChatPromptTemplate.from_messages([
-        #                                 SystemMessage(content=system_prompt + "\n최종적으로 다음으로 실행해야 하는 Step을 결정하세요."),
-        #                                 MessagesPlaceholder("history"),
-        #                                 ("human", "Screened Intents:\n{intent}\nUtterance: {question}")])
-        #                             | self.llm.with_structured_output(RouterQuery)
-        #                             | RunnableLambda(lambda x: x.destination),
-        #                 context={
-        #                     "rag": itemgetter("result")
-        #                            | self.rag, 
-        #                     "language": itemgetter("language")
-        #                     }
-        #                     | self._process_context,
-        #                 question=itemgetter("question"),
-        #                 intent=itemgetter("intent"),
-        #                 parsed_intent=itemgetter("parsed_intent"),
-        #                 history=itemgetter("history"),
-        #                 language=itemgetter("language")
-        #             )
-        #         | RunnablePassthrough.assign(
-        #             context=RunnableLambda(lambda x: x["context"]["context"]),
-        #             raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
-        #             raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]]))
-        #         | StepDispatcher(
-        #             system_prompt=system_prompt, 
-        #             timer_prompt=timer_prompt)
-        #     )
-
-        def timed_stage(stage_name: str, runnable):
-            def timed_fn(*args):
-                import time
-                start = time.time()
-                # Execute the given runnable (using .invoke if available, otherwise call it)
-                result = runnable.invoke(input=args[0], config=None) if hasattr(runnable, "invoke") else runnable(input=args[0], config=None)
-                elapsed = time.time() - start
-                self.service_logger.info(f"{stage_name} took {elapsed:.4f} seconds")
-                return result
-            return RunnableLambda(timed_fn)
-        
-        # Break down the original pipeline into stages so we can time each one.
-        stage1 = RunnablePassthrough.assign(
-            chat_history=RunnableLambda(memory.load_memory_variables)
-                         | RunnableLambda(lambda x: x[memory.memory_key])
-        )
-        stage2 = EntityChain(system_prompt=entity_prompt)
-        stage3 = RunnableParallel(
-            destination=ChatPromptTemplate.from_messages([
-                            SystemMessage(content=step_prompt),
-                            MessagesPlaceholder("history"),
-                            ("human", "Screened Intents:\n"
-                                      "{intent}\n"
-                                      "Utterance: {question}")])
-                        | self.llm.with_structured_output(RouterQuery)
-                        | RunnableLambda(lambda x: x.destination),
-            context=RunnablePassthrough.assign(
-                        rag=itemgetter("result")
-                            | self.rag, 
-                        language=itemgetter("language"))
-                    | self._process_context,
-            question=itemgetter("question"),
-            intent=itemgetter("intent"),
-            parsed_intent=itemgetter("parsed_intent"),
-            history=itemgetter("history"),
-            language=itemgetter("language")
-        )
-        stage4 = RunnablePassthrough.assign(
-            context=RunnableLambda(lambda x: x["context"]["context"]),
-            raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
-            raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]])
-        )
-        stage5 = StepDispatcher(
-            system_prompt=system_prompt,
-            timer_prompt=timer_prompt,
-            treatment_prompt=treatment_prompt
-        )
-        
-        # Compose the pipeline while wrapping each stage with the timing wrapper.
-        timed_chain = (
-            timed_stage("Stage 1: Load Memory and Chat History", stage1)
-            | timed_stage("Stage 2: EntityChain", stage2)
-            | timed_stage("Stage 3: RunnableParallel", stage3)
-            | timed_stage("Stage 4: Context Assignment", stage4)
-            | timed_stage("Stage 5: StepDispatcher", stage5)
-        )
-        return timed_chain
+    async def get_service_chain(self, memory, language) -> RunnableSerializable:
+        return self.service_chain.build_chain(memory=memory, language=language)
