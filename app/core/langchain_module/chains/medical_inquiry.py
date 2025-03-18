@@ -178,14 +178,16 @@ class TimerChain(Runnable):
         intents = input.get("parsed_intent", {})
         language = input.get("language", "ko")
         treatment_data = {}
+        print(answers)
         for treat in raw_context:
             print(treat)
-            if any([a for a in answers if a in treat.metadata[f"치료_{language}"]]):
-                treatment_data[treat.metadata[f"치료_{language}"]] = {
+            if any([a for a in answers if a in treat.metadata[f"치료"]]):
+                treatment_data[treat.metadata[f"치료"]] = {
                     "time": treat.metadata["소요 시간"],
                     "diagnosis": treat.metadata["증상"]
                     }
         treatment_rule = self.treatment_rule(treatments=treatment_data, pain=intents["증상 강도"])
+        print(treatment_rule)
         treatment_message = ", ".join(treatment_rule["treatments"])
         treatment_time_message = f'{"+".join(f"{i}분" for i in treatment_rule["cal_info"])}={treatment_rule["total"]}분'
         input.update({
@@ -220,7 +222,7 @@ class StepDispatcher(Runnable):
                                   "Screened Intents:\n{intent}\n"
                                   "Utterance: {question}\n"
                                   "Language: {language}\n"
-                                  "Running State: step1") ])
+                                  "Activated State: step1") ])
                     | self.llm
                     | StrOutputParser(),
                 screening=itemgetter("intent")
@@ -241,7 +243,9 @@ class StepDispatcher(Runnable):
                               "---\n"
                               "Possible Anwers:[{raw_treatment}]") ])
                     | self.llm.with_structured_output(TreatmentQuery)
-                    | RunnableLambda(lambda x: list(set(x.answers))))
+                    | RunnableLambda(lambda x: [ str(a) for a in set(x.answers)]),
+                pain=RunnableLambda(lambda x: x["parsed_intent"]["증상 강도"]),
+                language=RunnableLambda(lambda x: x["language"]))
             | TimerChain()
             | RunnableParallel(
                 text=RunnablePassthrough()
@@ -252,7 +256,7 @@ class StepDispatcher(Runnable):
                                   "Screened Intents:\n{intent}\n"
                                   "Utterance: {question}\n"
                                   "Language: {language}\n"
-                                  "Processing State: step2\n\n")])
+                                  "Activated State: step2\n\n")])
                      | self.llm
                      | StrOutputParser(),
                 screening=itemgetter("intent")
@@ -271,7 +275,7 @@ class StepDispatcher(Runnable):
                                   "Screened Intents:\n{intent}\n"
                                   "Utterance: {question}\n"
                                   "Language: {language}\n"
-                                  "Processing State: step2")])
+                                  "Activated State: step2")])
                      | self.llm
                      | StrOutputParser(),
                 screening=itemgetter("intent")
@@ -334,7 +338,9 @@ class ServiceChain:
         self.service_logger.warning(f"rag step output {step_output['rag']}")
         for doc in step_output['rag']:
             source_data = doc.page_content.strip()
+            print(language)
             doc.metadata["치료"] = doc.metadata.get(f"치료_{language}")
+            print(doc.metadata["치료"])
             metadata_text = "\n".join([
                 f"{k}: {v}"
                 for k, v in doc.metadata.items()
@@ -422,7 +428,7 @@ class ServiceChain:
         stage4 = RunnablePassthrough.assign(
             context=RunnableLambda(lambda x: x["context"]["context"]),
             raw_context=RunnableLambda(lambda x: x["context"]["raw_context"]),
-            raw_treatment=RunnableLambda(lambda x: [data.metadata.get("치료") for data in x["context"]["raw_context"]])
+            raw_treatment=RunnableLambda(lambda x: [data.metadata.get(f"치료") for data in x["context"]["raw_context"]])
         )
         stage5 = StepDispatcher(
             system_prompt=system_prompt,

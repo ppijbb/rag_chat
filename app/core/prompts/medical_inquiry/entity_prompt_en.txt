@@ -2,7 +2,7 @@
 Current Time: {}
 
 # Task
-From the user's utterance, summarize these categories.
+From the user's utterance, summarize these categories in English.
 Required: [Symptoms, Duration, Symptoms Area, Severity, Specific Situations, Special Considerations]
 Optional: []
 
