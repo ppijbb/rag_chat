@@ -243,7 +243,7 @@ class StepDispatcher(Runnable):
                               "---\n"
                               "Possible Anwers:[{raw_treatment}]") ])
                     | self.llm.with_structured_output(TreatmentQuery)
-                    | RunnableLambda(lambda x: [ str(a) for a in set(x.answers)]),
+                    | RunnableLambda(lambda x: [ a.decode('utf-8') if isinstance(a, bytes) else a for a in set(x.answers)]),
                 pain=RunnableLambda(lambda x: x["parsed_intent"]["증상 강도"]),
                 language=RunnableLambda(lambda x: x["language"]))
             | TimerChain()
