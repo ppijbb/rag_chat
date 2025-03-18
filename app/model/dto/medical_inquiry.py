@@ -36,13 +36,13 @@ class ChatResponse(BaseModel):
         if "<question>" in value:
             tag_pattern = re.compile(r'<question>(.*?)</question>', re.DOTALL)
             match = tag_pattern.search(value)
-            return match.group(1).strip()
+            return match.group(1).strip().replace("(lang:ko)", "").replace("(lang:en)", "")
         elif "<treatment>" in value:
             tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
             match = tag_pattern.search(value)
-            return match.group(1).strip()
+            return match.group(1).strip().replace("(lang:ko)", "").replace("(lang:en)", "")
         else:
-            return value
+            return value.replace("(lang:ko)", "").replace("(lang:en)", "")
 
     @model_validator(mode="before")
     def check_screening(cls, values: Dict) -> Dict:
