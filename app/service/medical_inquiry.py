@@ -20,6 +20,7 @@ from app.core.langchain_module.rag import VectorStore
 from app.core.langchain_module.llm import DDG_LLM, get_llm
 from app.core.langchain_module.chains.medical_inquiry import ServiceChain
 from app.core.prompts.medical_inquiry import MULTI_QUERY_PROMPT
+from app.model.dto.medical_inquiry import ChatResponse
 from app.service._base import BaseService
 
 
@@ -113,13 +114,13 @@ class MedicalInquiryService(BaseService):
 
     async def get_state(
         self,
-        text:str
+        response: ChatResponse
     ) -> int:
         state = self.vectorstore.search(
-            query=text,
+            query=response.text,
             collection_name="state_control",
             limit=1)
-        return state.pop().get("metadata").get("state") if state else 3
+        return state.pop().get("metadata").get("state") if state else 2 if response.treatment is None else 3
 
     async def inquiry_stream(
         self,

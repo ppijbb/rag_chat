@@ -33,12 +33,12 @@ class ChatResponse(BaseModel):
         value: str
     ) -> str:
         cls._original_text = value
-        if "<treatment>" in value:
-            tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
+        if "<question>" in value:
+            tag_pattern = re.compile(r'<question>(.*?)</question>', re.DOTALL)
             match = tag_pattern.search(value)
             return match.group(1).strip()
-        elif "<question>" in value:
-            tag_pattern = re.compile(r'<question>(.*?)</question>', re.DOTALL)
+        elif "<treatment>" in value:
+            tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
             match = tag_pattern.search(value)
             return match.group(1).strip()
         else:
