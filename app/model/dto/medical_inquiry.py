@@ -48,7 +48,8 @@ class ChatResponse(BaseModel):
     def check_screening(cls, values: Dict) -> Dict:
         value = values.get("screening")
         language = values.get("language")  # Default to "ko" if language is not set
-        if value is None:
+        if value is not None:
+            logger.info(f"Already screening tag {value}")
             return values
 
         if language == "ko":
@@ -73,16 +74,16 @@ class ChatResponse(BaseModel):
         try:
             tag_pattern = re.compile(r'<screening>(.*?)</screening>', re.DOTALL)
             match = tag_pattern.search(value)
-            if not match:
-                assert False, "No screening tag"
+            
+            assert match, "No screening tag"
 
             content = match.group(1).strip()
 
             # 각 줄별로 분리합니다.
             lines = [line.strip() for line in content.splitlines() if line.strip()]
-            if len(lines) < 3:
-                # 적어도 헤더, 구분선, 그리고 하나 이상의 데이터 행이 필요합니다.
-                assert False, "Not in screening format"
+            logger.info(f"lines: {lines}")
+            # 적어도 헤더, 구분선, 그리고 하나 이상의 데이터 행이 필요합니다.
+            assert len(lines) > 2, "Not in screening format"
 
             # 첫 두 줄(헤더와 구분선)을 건너뜁니다.
             data_lines = lines[2:]
@@ -94,6 +95,7 @@ class ChatResponse(BaseModel):
                     key, value = columns[0], columns[1]
                     result[key] = value.strip() if len(value.strip()) > 0 else None
         except AssertionError as e:
+            logger.error(f"Reponse Parsing Error: {e}")
             result = result
         finally:
             values["screening"] = [{"label": k, "content": v} for k, v in result.items()]
