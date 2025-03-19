@@ -121,7 +121,7 @@ class TreatmentQuery(BaseModel):
         description="Selected treatments. ex) ['치료1', '치료2', ...]"
     )
     
-    @model_validator(mode="after")
+    @model_validator(mode="before")
     def check_structured_output(cls, values: Dict) -> Dict:
         print("structed treatments selections : ", values)
         return values

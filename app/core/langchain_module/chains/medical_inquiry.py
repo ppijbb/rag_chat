@@ -3,6 +3,8 @@ import re
 from operator import itemgetter
 from collections import ChainMap
 import time
+from logging import Logger
+
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, Runnable, RunnableParallel
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
@@ -22,6 +24,7 @@ class EntityChain(Runnable):
             ("user", "Utterance: {question}")
         ])
         self.chain = self.prompt | self.llm
+        self.chain_logger = get_logger()
 
     def intent_parser(self, text)->dict:
         result = {
@@ -81,16 +84,15 @@ class EntityChain(Runnable):
 
 class TimerChain(Runnable):
     max_time:int = 90
+    chain_logger: Logger = get_logger()
 
     def treatment_rule(
         self, 
         treatments: List[Dict],
         pain: str
     ) -> int:
-        self.service_logger = get_logger()
         def time_in_max(max_time: int) -> int:
             processed_times = [int(a['time']) for a in treatments.values()]
-            self.service_logger.info(f"Processed times: {processed_times}")
             return {
                 "cal_info": [t for t in processed_times],
                 "total": min(sum(processed_times), max_time)
@@ -99,10 +101,10 @@ class TimerChain(Runnable):
         if pain is None:
             pain = "0"
         pain = int(pain[-1] if "-" in pain or "~" in pain else pain)
-        self.service_logger.info(f"Pain level: {pain}")
+        self.chain_logger.debug(f"Pain level: {pain}")
 
         if len(treatments) > 1:
-            self.service_logger.info(f"Multiple treatments found: {treatments}")
+            self.chain_logger.debug(f"Multiple treatments found: {treatments}")
             for treat in treatments:
                 if isinstance(treatments[treat]['time'], str):
                     treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
@@ -111,23 +113,23 @@ class TimerChain(Runnable):
                 if "스케일링" in treatments and "잇몸" in treat:
                     if pain < 7:
                         del treatments[treat]
-                        self.service_logger.info(f"Deleted treatment due to low pain: {treat}")
+                        self.chain_loggerdebugo(f"Deleted treatment due to low pain: {treat}")
                     else:
                         del treatments["스케일링"]
-                        self.service_logger.info("Deleted 스케일링 due to high pain")
+                        self.chain_logger.debug("Deleted 스케일링 due to high pain")
 
             is_treat = [t for t in treatments if "치료" in t]
             is_couns = [t for t in treatments if "상담" in t]
-            self.service_logger.info(f"Treatments: {is_treat}, Consultations: {is_couns}")
+            self.chain_logger.debug(f"Treatments: {is_treat}, Consultations: {is_couns}")
             
             if len(is_couns) > 1:  # 상담이 2개 이상인 경우
-                self.service_logger.info("Multiple consultations found")
+                self.chain_logger.debug("Multiple consultations found")
                 return {
                     "treatments": [t for t in treatments],
                     **time_in_max(55 if any([t for t in treatments if "교정" in t]) else 40)
                 }
             elif any(is_treat) and any(is_couns):  # 치료와 상담이 모두 있는 경우
-                self.service_logger.info("Both treatments and consultations found")
+                self.chain_logger.debug("Both treatments and consultations found")
                 for t in treatments:
                     if "상담" in t:
                         treatments[t]["time"] = 40 if "교정" in t else 25
@@ -137,13 +139,13 @@ class TimerChain(Runnable):
                 }
                 
             elif any(is_treat):  # 치료가 포함된 경우
-                self.service_logger.info("Treatments found")
+                self.chain_logger.debug("Treatments found")
                 if any([t for t in treatments if "신경" in t]):  # 신경치료가 포함된 경우
-                    self.service_logger.info("Nerve treatment found")
+                    self.chain_logger.debug("Nerve treatment found")
                     result = [t for t in treatments if "신경" in t]  # 신경치료만 계산
                     is_re = [r for r in result if "재신경" in r]  # 재신경 치료인 경우 재신경 치료 우선
                     result = is_re.pop() if len(is_re) > 0 else result.pop()
-                    self.service_logger.info(f"Selected treatment: {result}")
+                    self.chain_logger.debug(f"Selected treatment: {result}")
                     return {
                         "treatments": [result],
                         "cal_info": treatments[result]["time"],
@@ -155,14 +157,14 @@ class TimerChain(Runnable):
                         **time_in_max(self.max_time)
                     }
             else:
-                self.service_logger.info("Only consultations found")
-                self.service_logger.info(f"Consultations: {treatments}")
+                self.chain_logger.info("Only consultations found")
+                self.chain_logger.info(f"Consultations: {treatments}")
                 return {
                     "treatments": [t for t in treatments],
                     **time_in_max(self.max_time)
                 }
         else:
-            self.service_logger.info("Single treatment found")
+            self.chain_logger.info("Single treatment found")
             for treat in treatments:
                 if isinstance(treatments[treat]['time'], str):
                     treatments[treat]['time'] = int(treatments[treat]['time'].replace("분", ""))
@@ -179,23 +181,23 @@ class TimerChain(Runnable):
         intents = input.get("parsed_intent", {})
         language = input.get("language", "ko")
         treatment_data = {}
-        print(answers)
+        self.chain_logger.debug(answers)
         for treat in raw_context:
-            print(treat)
+            self.chain_logger.debug(treat)
             if any([a for a in answers if a in treat.metadata[f"치료"]]):
                 treatment_data[treat.metadata[f"치료"]] = {
                     "time": treat.metadata["소요 시간"],
                     "diagnosis": treat.metadata["증상"]
                     }
         treatment_rule = self.treatment_rule(treatments=treatment_data, pain=intents["증상 강도"])
-        print(treatment_rule)
+        self.chain_logger.debug(treatment_rule)
         treatment_message = ", ".join(treatment_rule["treatments"])
         treatment_time_message = f'{"+".join(f"{i}분" for i in treatment_rule["cal_info"])}={treatment_rule["total"]}분'
         input.update({
             "context": "Response Guide\n"
                       f"예상되는 진료는 {treatment_message} 이며, 진료 시간은 {treatment_time_message} 으로 예상됩니다.\n",
             "treatment_time": treatment_rule["total"]})
-        print(input["context"])
+        self.chain_logger.debug(input["context"])
         return {
             **input
         }
@@ -211,7 +213,7 @@ class StepDispatcher(Runnable):
     """
     def __init__(self, system_prompt: str, timer_prompt: str, treatment_prompt: str):
         self.llm = get_llm()  # get_llm()를 통해 LLM 인스턴스 가져옴
-        self.service_logger = get_logger()
+        self.chain_logger = get_logger()
 
         # step1: 문진 진행
         self.chain_step1 = (
@@ -244,7 +246,7 @@ class StepDispatcher(Runnable):
                               "---\n"
                               "Possible Anwers:[{raw_treatment}]") ])
                     | self.llm.with_structured_output(TreatmentQuery)
-                    | RunnableLambda(lambda x: [ a.decode('utf-8') if isinstance(a, bytes) else a for a in set(x.answers)]),
+                    | RunnableLambda(lambda x: [ a for a in set(x.answers)]),
                 pain=RunnableLambda(lambda x: x["parsed_intent"]["증상 강도"]),
                 language=RunnableLambda(lambda x: x["language"]))
             | TimerChain()
@@ -287,7 +289,7 @@ class StepDispatcher(Runnable):
 
     def invoke(self, input: dict, config: dict = None, **kwargs):
         destination = input.get("destination")
-        self.service_logger.info(f"route to {destination} chain")
+        self.chain_logger.info(f"route to {destination} chain")
         start = time.time()
         match destination:
             case "step1":
@@ -298,7 +300,7 @@ class StepDispatcher(Runnable):
                 result = self.chain_step3.invoke(input, config=config, **kwargs)
             case _:
                 raise ValueError(f"Invalid destination: {destination}")
-        self.service_logger.info(f"{destination} chain Elapsed time: {time.time() - start}")
+        self.chain_logger.info(f"{destination} chain Elapsed time: {time.time() - start}")
         return result
 
     def batch(self, inputs: list, config: dict = None, **kwargs):
@@ -314,7 +316,7 @@ class ServiceChain:
                  retriever,
                  llm=None,
                  dental_section_list=None,
-                 service_logger=None):
+                 chain_logger=None):
         """
         Initialize the ServiceChain with required components.
         
@@ -323,12 +325,12 @@ class ServiceChain:
             llm: Language model to use, defaults to get_llm()
             dental_section_list: List of dental sections/areas
             process_context_func: Function to process context from retrieval
-            service_logger: Logger to use for timing information
+            chain_logger: Logger to use for timing information
         """
         self.llm = llm or get_llm()
         self.rag = retriever
         self.dental_section_list = dental_section_list or []
-        self.service_logger = service_logger
+        self.chain_logger = chain_logger
     
     def _process_context(
         self, 
@@ -336,12 +338,12 @@ class ServiceChain:
     ) -> Dict[str, str]:
         result, category = [], []
         language = step_output["language"]
-        self.service_logger.warning(f"rag step output {step_output['rag']}")
+        self.chain_logger.warning(f"rag step output {step_output['rag']}")
         for doc in step_output['rag']:
             source_data = doc.page_content.strip()
-            print(language)
+            self.chain_logger.debug(language)
             doc.metadata["치료"] = doc.metadata.get(f"치료_{language}")
-            print(doc.metadata["치료"])
+            self.chain_logger.debug(doc.metadata["치료"])
             metadata_text = "\n".join([
                 f"{k}: {v}"
                 for k, v in doc.metadata.items()
@@ -395,8 +397,8 @@ class ServiceChain:
                             if hasattr(runnable, "invoke") else
                           runnable(input=args[0], config=None))
                 elapsed = time.time() - start
-                if self.service_logger:
-                    self.service_logger.info(f"{stage_name} took {elapsed:.4f} seconds")
+                if self.chain_logger:
+                    self.chain_logger.info(f"{stage_name} took {elapsed:.4f} seconds")
                 return result
             return RunnableLambda(timed_fn)
         

@@ -18,9 +18,10 @@ from langchain_community.document_compressors.openvino_rerank import OpenVINORer
 from langchain_community.embeddings.openvino import OpenVINOBgeEmbeddings
 from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
 
+from app.core.logging import get_logger
 from app.core.database.neo4j import NEO4J_URL, NEO4J_AUTH
 from app.core.langchain_module.llm import DDG_LLM
-from app.core.prompts.follow_up_care import system_prompt, neo4j_query_prompt, graph_rag_prompt
+from app.core.prompts.follow_up_care import neo4j_query_prompt, graph_rag_prompt
 
 
 class CustomOVCrossEncoderReranker(OpenVINOReranker):
@@ -58,7 +59,8 @@ class VectorStore:
         self.vectorstore = self._init_vectorstore()
         self.all_docs = self._get_all_docs()
         self.reranker = self._get_reranker()
-        self._ensure_collection()       
+        self._ensure_collection()
+        self.rag_logger = get_logger()
 
     def _init_vectorstore(self):
         return Qdrant(
@@ -153,7 +155,7 @@ class VectorStore:
                         )
                     )
         except Exception as e:
-            print(f"BM25 초기화 중 오류 발생: {e}")
+            self.rag_logger.info(f"BM25 초기화 중 오류 발생: {e}")
             all_docs = []
         return all_docs
 
@@ -162,7 +164,7 @@ class VectorStore:
         try:
             self.client.get_collection(self.collection_name)
         except Exception:
-            print(f"Creating collection {self.collection_name}...")
+            self.rag_logger.info(f"Creating collection {self.collection_name}...")
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=models.VectorParams(
@@ -199,7 +201,7 @@ class VectorStore:
             )
             return True
         except Exception as e:
-            print(f"Error adding text: {e}")
+            self.rag_logger.error(f"Error adding text: {e}")
             return False
 
     def search(self, query: str, collection_name:str, limit: int = 50) -> List[Dict]:
@@ -219,7 +221,7 @@ class VectorStore:
                 "score": result.score
                 } for result in results]
         except Exception as e:
-            print(f"Error searching: {e}")
+            self.rag_logger.error(f"Error searching: {e}")
             return []
 
     def get_collection_info(self) -> Dict:
@@ -228,7 +230,7 @@ class VectorStore:
             info = self.client.get_collection(self.collection_name)
             return info.model_dump()
         except Exception as e:
-            print(f"Error getting collection info: {e}")
+            self.rag_logger.error(f"Error getting collection info: {e}")
             return {}
 
     def delete_collection(self) -> bool:
@@ -237,7 +239,7 @@ class VectorStore:
             self.client.delete_collection(self.collection_name)
             return True
         except Exception as e:
-            print(f"Error deleting collection: {e}")
+            self.rag_logger.error(f"Error deleting collection: {e}")
             return False
         
     def delete_item(self, item_id: str) -> bool:
@@ -250,7 +252,7 @@ class VectorStore:
                 )
             return True
         except Exception as e:
-            print(f"Error deleting item: {e}")
+            self.rag_logger.error(f"Error deleting item: {e}")
             return False
 
     def as_retriever(self, **kwargs):

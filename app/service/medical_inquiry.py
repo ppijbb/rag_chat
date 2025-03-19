@@ -68,7 +68,7 @@ class MedicalInquiryService(BaseService):
             retriever=self.rag,
             llm=self.llm,
             dental_section_list=self.dental_section_list,
-            service_logger=self.service_logger
+            chain_logger=self.service_logger
         )
         
     async def inquiry_chat(

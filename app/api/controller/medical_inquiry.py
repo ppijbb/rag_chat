@@ -88,22 +88,21 @@ class MedicalInquiryRouterIngress(BaseIngress):
                     state=request.state,
                     memory_key=request.uid)
                 result.update(chain_result)
-                # self.server_logger.info(f"\nRequest: {request.text}")
-                self.server_logger.info(f"Result: {result}")
                 end = time.time()
+                self.server_logger.debug(f"Result in {end - st}sec: {result}")
                 # ----------------------------------- #
                 assert len(result) > 0, "Generation failed"
                 status_code = 200
                 content = ChatResponse(language=request.lang, **result)
                 content.state = await self.service.get_state.remote(content)
-                self.server_logger.info(f"Time: {end - st}")
             except AssertionError as e:
                 self.server_logger.error(f"!!! data validation error !!! {e}")
                 result["text"] = str(e)
                 status_code = 501
                 content = ChatResponse(**result)
             except Exception as e:
-                self.server_logger.error(f"!!! unkwon error !!! {e}")
+                err_msg =traceback.print_exc()
+                self.server_logger.error(f"!!! unkwon error !!! {err_msg}")
                 result["text"] = "Generation failed"
                 status_code = 500
                 content = ChatResponse(**result)
