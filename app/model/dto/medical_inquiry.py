@@ -26,6 +26,10 @@ class ChatResponse(BaseModel):
         from_attributes = True
         extra = 'allow'  # 정의되지 않은 속성 허용
     
+    @classmethod
+    def _clear_text(cls, _text: str) -> str:
+        return _text.replace("lang:ko", "").replace("lang:en", "").replace("(", "").replace(")", "").strip()
+    
     @field_validator("text", mode="before")
     @classmethod
     def check_text(
@@ -36,13 +40,13 @@ class ChatResponse(BaseModel):
         if "<question>" in value:
             tag_pattern = re.compile(r'<question>(.*?)</question>', re.DOTALL)
             match = tag_pattern.search(value)
-            return match.group(1).strip().replace("(lang:ko)", "").replace("(lang:en)", "")
+            return cls._clear_text(_text=match.group(1).strip())
         elif "<treatment>" in value:
             tag_pattern = re.compile(r'<treatment>(.*?)</treatment>', re.DOTALL)
             match = tag_pattern.search(value)
-            return match.group(1).strip().replace("(lang:ko)", "").replace("(lang:en)", "")
+            return cls._clear_text(_text=match.group(1).strip())
         else:
-            return value.replace("(lang:ko)", "").replace("(lang:en)", "")
+            return cls._clear_text(_text=value)
 
     @model_validator(mode="before")
     def check_screening(cls, values: Dict) -> Dict:
