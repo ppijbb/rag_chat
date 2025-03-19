@@ -1,6 +1,7 @@
 from typing import List, Dict
 import re
 from operator import itemgetter
+from collections import ChainMap
 import time
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda, Runnable, RunnableParallel
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -405,6 +406,14 @@ class ServiceChain:
                          | RunnableLambda(lambda x: x[memory.memory_key])
         )
         stage2 = EntityChain(system_prompt=entity_prompt)
+        # stage2 = (RunnableParallel(
+        #             entity=EntityChain(system_prompt=entity_prompt),
+        #             context=RunnablePassthrough.assign(
+        #                         rag=RunnableLambda(lambda x: f"{' '.join([his.content for his in x["chat_history"] if his.type=='human'])} {x['question']}")
+        #                             | self.rag, 
+        #                         language=itemgetter("language"))
+        #                     | self._process_context)
+        #           | RunnableLambda(lambda x: dict(ChainMap({"context":x["context"]}, x["entity"]))))
         stage3 = RunnableParallel(
             destination=ChatPromptTemplate.from_messages([
                             SystemMessage(content=step_prompt),
@@ -419,6 +428,7 @@ class ServiceChain:
                             | self.rag, 
                         language=itemgetter("language"))
                     | self._process_context,
+            # context=itemgetter("context"),
             question=itemgetter("question"),
             intent=itemgetter("intent"),
             parsed_intent=itemgetter("parsed_intent"),

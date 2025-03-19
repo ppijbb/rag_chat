@@ -46,12 +46,12 @@ class ChatResponse(BaseModel):
 
     @model_validator(mode="before")
     def check_screening(cls, values: Dict) -> Dict:
+        logger.warning(f"check_screening: {values}")
         value = values.get("screening")
+        text = values.get("text")
         language = values.get("language")  # Default to "ko" if language is not set
-        if value is not None:
-            logger.info(f"Already screening tag {value}")
+        if value is None:
             return values
-
         if language == "ko":
             result = {
                 "증상": None,
@@ -70,18 +70,18 @@ class ChatResponse(BaseModel):
                 "Specific Situations": None,
                 "Special Considerations": None
             }
-
+        logger.warning(f"text: {text}")
         try:
             tag_pattern = re.compile(r'<screening>(.*?)</screening>', re.DOTALL)
             match = tag_pattern.search(value)
-            
+            if not match:
+                match = tag_pattern.search(text)
             assert match, "No screening tag"
 
             content = match.group(1).strip()
 
             # 각 줄별로 분리합니다.
             lines = [line.strip() for line in content.splitlines() if line.strip()]
-            logger.info(f"lines: {lines}")
             # 적어도 헤더, 구분선, 그리고 하나 이상의 데이터 행이 필요합니다.
             assert len(lines) > 2, "Not in screening format"
 
@@ -120,3 +120,8 @@ class TreatmentQuery(BaseModel):
         default=None,
         description="Selected treatments. ex) ['치료1', '치료2', ...]"
     )
+    
+    @model_validator(mode="after")
+    def check_structured_output(cls, values: Dict) -> Dict:
+        print("structed treatments selections : ", values)
+        return values
