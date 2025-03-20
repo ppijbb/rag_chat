@@ -367,12 +367,13 @@ class ServiceChain:
         from app.util.time_func import format_datetime_with_ampm
         from app.model.dto.medical_inquiry import RouterQuery
         from app.core.prompts.medical_inquiry import (
-            SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, 
+            SYSTEM_PROMPT,STEP2_SYSTEM_PROMPT, ENTITY_PROMPT_KO, ENTITY_PROMPT_EN, TIMER_PROMPT, 
             STEP_CONTROL_PROMPT, TREATMENT_PROMPT)
         
         # Use provided templates or fall back to imported ones
         current_time = format_datetime_with_ampm(datetime.now())
         system_prompt_template = SYSTEM_PROMPT
+        step2_system_prompt_template = STEP2_SYSTEM_PROMPT
         entity_prompt_ko = ENTITY_PROMPT_KO
         entity_prompt_en = ENTITY_PROMPT_EN
         timer_prompt_template = TIMER_PROMPT
@@ -384,6 +385,9 @@ class ServiceChain:
         system_prompt = system_prompt_template.format(
             current_time, 
             ", ".join(self.dental_section_list),
+            language)
+        step2_prompt = step2_system_prompt_template.format(
+            current_time,
             language)
         entity_prompt = (entity_prompt_ko if language == "ko" else entity_prompt_en).format(current_time)
         timer_prompt = timer_prompt_template.format(current_time)
@@ -407,15 +411,15 @@ class ServiceChain:
             chat_history=RunnableLambda(memory.load_memory_variables)
                          | RunnableLambda(lambda x: x[memory.memory_key])
         )
-        stage2 = EntityChain(system_prompt=entity_prompt)
-        # stage2 = (RunnableParallel(
-        #             entity=EntityChain(system_prompt=entity_prompt),
-        #             context=RunnablePassthrough.assign(
-        #                         rag=RunnableLambda(lambda x: f"{' '.join([his.content for his in x["chat_history"] if his.type=='human'])} {x['question']}")
-        #                             | self.rag, 
-        #                         language=itemgetter("language"))
-        #                     | self._process_context)
-        #           | RunnableLambda(lambda x: dict(ChainMap({"context":x["context"]}, x["entity"]))))
+        # stage2 = EntityChain(system_prompt=entity_prompt)
+        stage2 = (RunnableParallel(
+                    entity=EntityChain(system_prompt=entity_prompt),
+                    context=RunnablePassthrough.assign(
+                                rag=RunnableLambda(lambda x: f"{' '.join([his.content for his in x["chat_history"] if his.type=='human'])} {x['question']}")
+                                    | self.rag, 
+                                language=itemgetter("language"))
+                            | self._process_context)
+                  | RunnableLambda(lambda x: dict(ChainMap({"context":x["context"]}, x["entity"]))))
         stage3 = RunnableParallel(
             destination=ChatPromptTemplate.from_messages([
                             SystemMessage(content=step_prompt),
@@ -425,12 +429,12 @@ class ServiceChain:
                                       "Utterance: {question}")])
                         | self.llm.with_structured_output(RouterQuery)
                         | RunnableLambda(lambda x: x.destination),
-            context=RunnablePassthrough.assign(
-                        rag=itemgetter("result")
-                            | self.rag, 
-                        language=itemgetter("language"))
-                    | self._process_context,
-            # context=itemgetter("context"),
+            # context=RunnablePassthrough.assign(
+            #             rag=itemgetter("result")
+            #                 | self.rag, 
+            #             language=itemgetter("language"))
+            #         | self._process_context,
+            context=itemgetter("context"),
             question=itemgetter("question"),
             intent=itemgetter("intent"),
             parsed_intent=itemgetter("parsed_intent"),

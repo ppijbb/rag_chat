@@ -1,6 +1,7 @@
 from app.core.prompts.live_prompt import LivePromptObject
 
 SYSTEM_PROMPT:str = LivePromptObject("medical_inquiry/system_prompt.txt")
+STEP2_SYSTEM_PROMPT:str = LivePromptObject("medical_inquiry/step2_system_prompt.txt")
 ENTITY_PROMPT_KO:str = LivePromptObject("medical_inquiry/entity_prompt_ko.txt")
 ENTITY_PROMPT_EN:str = LivePromptObject("medical_inquiry/entity_prompt_en.txt")
 TIMER_PROMPT:str = LivePromptObject("medical_inquiry/timer_prompt.txt")
