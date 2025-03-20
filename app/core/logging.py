@@ -24,5 +24,3 @@ def get_logger():
     # logger.addHandler(file_handler)
 
     return logger
-
-logger = get_logger() 
