@@ -193,6 +193,13 @@ class TimerChain(Runnable):
         self.chain_logger.debug(treatment_rule)
         treatment_message = ", ".join(treatment_rule["treatments"])
         treatment_time_message = f'{"+".join(f"{i}분" for i in treatment_rule["cal_info"])}={treatment_rule["total"]}분'
+        
+        if len(treatment_message) < 1:
+            treatment_message = "일반 검진" if language == "ko" else "Diagnostic Exam"
+        if treatment_rule["total"] == 0:
+            treatment_rule["total"] = 25
+            treatment_time_message = "25분"
+        
         input.update({
             "context": "Response Guide\n"
                       f"예상되는 진료는 {treatment_message} 이며, 진료 시간은 {treatment_time_message} 으로 예상됩니다.\n",
@@ -225,7 +232,8 @@ class StepDispatcher(Runnable):
                                   "Screened Intents:\n{intent}\n"
                                   "Utterance: {question}\n"
                                   "Language: {language}\n"
-                                  "Activated State: step1") ])
+                                  "Activated State: step1\n"
+                                  "(CAUTION!!! NEVER SAY THANK YOU.)") ])
                     | self.llm
                     | StrOutputParser(),
                 screening=itemgetter("intent")
