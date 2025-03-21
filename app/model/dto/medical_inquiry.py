@@ -121,8 +121,7 @@ class RouterQuery(BaseModel):
 class TreatmentQuery(BaseModel):
     """Route query to destination."""
     answers: List[Optional[str]] = Field(
-        default=None,
-        description="Selected treatments. ex) ['치료1', '치료2', ...]"
+        description="Selected treatments from give possible answers."
     )
     
     @model_validator(mode="before")
