@@ -218,7 +218,7 @@ class StepDispatcher(Runnable):
     """
     destination 값("step1", "step2", "step3")에 따라 해당 체인을 선택하여 실행하는 Runnable 클래스입니다.
     """
-    def __init__(self, system_prompt: str, timer_prompt: str, treatment_prompt: str):
+    def __init__(self, system_prompt: str, alter_prompt: str, treatment_prompt: str):
         self.llm = get_llm()  # get_llm()를 통해 LLM 인스턴스 가져옴
         self.chain_logger = get_logger()
 
@@ -261,7 +261,7 @@ class StepDispatcher(Runnable):
             | RunnableParallel(
                 text=RunnablePassthrough()
                      | ChatPromptTemplate.from_messages([
-                        SystemMessage(content=system_prompt),
+                        SystemMessage(content=alter_prompt),
                         MessagesPlaceholder("history"),
                         ("human", "Contexts:\n{context}\n\n"
                                   "Screened Intents:\n{intent}\n"
@@ -456,7 +456,7 @@ class ServiceChain:
         )
         stage5 = StepDispatcher(
             system_prompt=system_prompt,
-            timer_prompt=timer_prompt,
+            alter_prompt=step2_prompt,
             treatment_prompt=treatment_prompt
         )
         
