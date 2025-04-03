@@ -40,7 +40,7 @@ Optional: []
 |Symptoms|(Identify and list the symptoms associated with different types of pain and their characteristics as mentioned in the provided statements<ex>Teeth pain (Deep, bruised sensation)</ex>)|
 |Duration|(Write stated duration <ex>1 month, 7 days or more, etc...>)|
 |Symptoms Area|(When the user specifically specifies the position, such as up, down, left, and right, direction, etc, select multiple options from [tongue, palate, upper right, lower right, upper left, lower left, upper front teeth, lower front teeth, left jaw, right jaw])|
-|Severity|(Write within given range of 0-10)|
+|Severity|(Write within given range of 0-10. intger only)|
 |Specific Situations|(Write stated triggering factors, situations)|
-|Special Considerations|(Write any additional information beyond the required items above)|
+|Special Considerations|(Write draft concise, standardized notes with key, current data and urgent alerts for the medical staff)|
 </screening>
